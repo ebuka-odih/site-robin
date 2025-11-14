@@ -4,8 +4,8 @@
 @php
     $accountTabs = [
         ['id' => 'investing', 'label' => 'Investing', 'balance' => '$12.14', 'change' => '+0.33% past month', 'isPositive' => true],
-        ['id' => 'retirement', 'label' => 'Retirement', 'balance' => '$18,932.22', 'change' => '+0.21% past quarter', 'isPositive' => true],
-        ['id' => 'credit', 'label' => 'Credit Card', 'balance' => '$620.48', 'change' => '-0.18% past month', 'isPositive' => false],
+        ['id' => 'pnl', 'label' => 'PNL', 'balance' => '$18,932.22', 'change' => '+0.21% past quarter', 'isPositive' => true],
+        ['id' => 'wallet', 'label' => 'Wallet Balance', 'balance' => '$620.48', 'change' => '-0.18% past month', 'isPositive' => false],
     ];
 
     $timeRanges = ['1D', '1W', '1M', '3M', '1Y', 'All'];
@@ -27,7 +27,7 @@
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="text-xs text-gray-400">{{ $tab['label'] }}</p>
-                            <p class="text-2xl font-semibold text-white" data-balance="{{ $tab['balance'] }}">
+                            <p class="text-2xl font-semibold text-white tab-balance" data-balance="{{ $tab['balance'] }}">
                                 {{ $index === 0 ? $tab['balance'] : '•••••' }}
                             </p>
                             <p class="text-xs {{ $tab['isPositive'] ? 'text-green-400' : 'text-red-400' }}">{{ $tab['change'] }}</p>
@@ -140,17 +140,17 @@
 
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Portfolio Balance</p>
+                <p class="text-xs uppercase text-gray-500">Investing</p>
                 <p id="activeBalanceCard" class="text-2xl font-semibold text-white">{{ $accountTabs[0]['balance'] }}</p>
                 <p id="activeChangeCard" class="text-xs text-green-400">{{ $accountTabs[0]['change'] }}</p>
             </div>
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Buying Power</p>
+                <p class="text-xs uppercase text-gray-500">PNL</p>
                 <p class="text-2xl font-semibold text-white">$12.14</p>
                 <p class="text-xs text-green-400">+$0.04 today</p>
             </div>
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Cash</p>
+                <p class="text-xs uppercase text-gray-500">Balance</p>
                 <p class="text-2xl font-semibold text-white">$8,210.50</p>
                 <p class="text-xs text-green-400">+1.2% this week</p>
             </div>

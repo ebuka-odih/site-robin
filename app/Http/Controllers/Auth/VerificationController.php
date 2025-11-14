@@ -47,7 +47,7 @@ class VerificationController extends Controller
         // Log the user in
         auth()->login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Email verified successfully! Welcome to your dashboard.');
+        return redirect()->route('user.dashboard')->with('success', 'Email verified successfully! Welcome to your dashboard.');
     }
 
     /**
