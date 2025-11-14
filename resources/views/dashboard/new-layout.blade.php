@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }} - Dashboard</title>
+  <link rel="icon" href="{{ asset('assets/img/favicon.png') }}" type="image/x-icon">
+    
+    <!-- Tailwind CSS CDN for immediate styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Pusher JS for real-time updates -->
+    <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+    
+    <!-- TradingView Widget -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    
+    <!-- SweetAlert2 for notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Vite assets (uncomment when running npm run dev) -->
+    {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
+    
+    @livewireStyles
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Theme CSS Variables */
+        :root {
+            /* Light theme colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        .dark {
+            /* Dark theme colors */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --border-hover: #64748b;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+        }
+        
+        /* Light theme classes - More specific selectors */
+        .light-theme {
+            background-color: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        .light-theme,
+        .light-theme * {
+            background-color: inherit;
+            color: inherit;
+        }
+        
+        /* Background overrides */
+        .light-theme .bg-gray-900,
+        .light-theme div.bg-gray-900,
+        .light-theme body.bg-gray-900 {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        .light-theme .bg-gray-800,
+        .light-theme div.bg-gray-800,
+        .light-theme header.bg-gray-800,
+        .light-theme nav.bg-gray-800 {
+            background-color: var(--bg-secondary) !important;
+        }
+        
+        .light-theme .bg-gray-700,
+        .light-theme div.bg-gray-700,
+        .light-theme button.bg-gray-700 {
+            background-color: var(--bg-tertiary) !important;
+        }
+        
+        .light-theme .bg-gray-600 {
+            background-color: var(--border-hover) !important;
+        }
+        
+        /* Text color overrides */
+        .light-theme .text-white,
+        .light-theme h1.text-white,
+        .light-theme h2.text-white,
+        .light-theme h3.text-white,
+        .light-theme span.text-white {
+            color: var(--text-primary) !important;
+        }
+        
+        .light-theme .text-gray-300,
+        .light-theme span.text-gray-300,
+        .light-theme p.text-gray-300 {
+            color: var(--text-secondary) !important;
+        }
+        
+        .light-theme .text-gray-400,
+        .light-theme span.text-gray-400,
+        .light-theme button.text-gray-400 {
+            color: var(--text-muted) !important;
+        }
+        
+        .light-theme .text-gray-200 {
+            color: var(--text-secondary) !important;
+        }
+        
+        /* Border overrides */
+        .light-theme .border-gray-700,
+        .light-theme .border-r.border-gray-700,
+        .light-theme .border-b.border-gray-700,
+        .light-theme .border-t.border-gray-700 {
+            border-color: var(--border-color) !important;
+        }
+        
+        .light-theme .border-gray-600 {
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Hover effects */
+        .light-theme .hover\\:bg-gray-700:hover,
+        .light-theme button:hover {
+            background-color: var(--border-hover) !important;
+        }
+        
+        .light-theme .hover\\:bg-gray-600:hover {
+            background-color: var(--border-hover) !important;
+        }
+        
+        .light-theme .hover\\:bg-gray-800:hover {
+            background-color: var(--bg-tertiary) !important;
+        }
+        
+        .light-theme .hover\\:text-white:hover,
+        .light-theme button:hover {
+            color: var(--text-primary) !important;
+        }
+        
+        .light-theme .hover\\:text-gray-300:hover {
+            color: var(--text-secondary) !important;
+        }
+        
+        /* Specific component overrides */
+        .light-theme #sidebar {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .light-theme header {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .light-theme main {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        /* Dropdown menus */
+        .light-theme .bg-gray-800.border.border-gray-700 {
+            background-color: var(--bg-secondary) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        /* Buttons and interactive elements */
+        .light-theme button {
+            color: var(--text-muted) !important;
+        }
+        
+        .light-theme button:hover {
+            background-color: var(--border-hover) !important;
+            color: var(--text-primary) !important;
+        }
+        
+        /* Additional light theme overrides for better coverage */
+        .light-theme .min-h-screen {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        .light-theme .h-screen {
+            background-color: var(--bg-primary) !important;
+        }
+        
+        .light-theme .flex {
+            color: inherit;
+        }
+        
+        .light-theme .flex-1 {
+            background-color: inherit;
+        }
+        
+        .light-theme .overflow-hidden {
+            background-color: inherit;
+        }
+        
+        .light-theme .overflow-x-hidden {
+            background-color: inherit;
+        }
+        
+        .light-theme .overflow-y-auto {
+            background-color: inherit;
+        }
+        
+        /* Force light theme on all elements */
+        .light-theme * {
+            color: inherit !important;
+        }
+        
+        .light-theme div,
+        .light-theme section,
+        .light-theme article,
+        .light-theme aside,
+        .light-theme nav,
+        .light-theme header,
+        .light-theme main,
+        .light-theme footer {
+            background-color: inherit !important;
+        }
+        
+        /* Theme transition */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-black text-white min-h-screen dark">
+    <div class="h-screen bg-black flex flex-col">
+        <!-- Page Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-black">
+            <div class="mx-auto max-w-5xl px-4 py-10">
+                @yield('content')
+            </div>
+        </main>
+        
+        <!-- Bottom Menu -->
+        <div class="fixed bottom-0 left-0 right-0 z-50 bg-black/85 backdrop-blur border-t border-[#161616]">
+            <nav class="mx-auto flex max-w-md justify-between gap-1 px-6 py-2 text-[11px] font-medium text-gray-500">
+                <a href="{{ route('user.dashboard') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.dashboard') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.dashboard') ? 'border border-[#1fff9c] text-[#1fff9c]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" />
+                        </svg>
+                    </div>
+                    <span>Home</span>
+                </a>
+                <a href="{{ route('user.nav.trade') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.trade') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.trade') ? 'border border-[#00ff5f] text-[#00ff5f]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 17l6-6 4 4 6-6" />
+                        </svg>
+                    </div>
+                    <span>Trade</span>
+                </a>
+                <a href="{{ route('user.nav.wallet') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.wallet') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.wallet') ? 'border border-[#facc15] text-[#facc15]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2zm0 0V5a2 2 0 012-2h3" />
+                        </svg>
+                    </div>
+                    <span>Wallet</span>
+                </a>
+                <a href="{{ route('user.nav.profile') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.profile') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.profile') ? 'border border-[#60a5fa] text-[#60a5fa]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 8c0-2.21 3.58-4 6-4s6 1.79 6 4" />
+                        </svg>
+                    </div>
+                    <span>Profile</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    @livewireScripts
+    
+    @stack('scripts')
+    
+    <script>
+    @yield('scripts')
+    </script>
+    
+    <script src="{{ asset('front/livewire/livewire5dd3.js') }}"   data-csrf="QHTgDfeSDEhGixs61ktyfaAnqYfyNU0Xv8qcvRbs" data-update-uri="/livewire/update" data-navigate-once="true"></script>
+</body>
+</html>
