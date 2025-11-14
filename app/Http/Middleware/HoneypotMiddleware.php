@@ -15,16 +15,16 @@ class HoneypotMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only apply honeypot validation to auth routes
-        if ($request->is('login', 'register')) {
+        // Only apply honeypot validation to POST requests on auth routes
+        if ($request->isMethod('post') && $request->is('login', 'register')) {
             // Check for suspicious patterns
             $userAgent = $request->userAgent();
             $ip = $request->ip();
             
-            // List of known bot user agents
+            // List of known bot user agents (more specific patterns)
             $botPatterns = [
-                'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget', 'python', 'java',
-                'php', 'perl', 'ruby', 'go-http', 'okhttp', 'apache-httpclient'
+                'curl/', 'wget/', 'python-requests', 'scrapy', 'headless',
+                'phantomjs', 'selenium', 'webdriver'
             ];
             
             // Check if user agent contains bot patterns
@@ -36,16 +36,16 @@ class HoneypotMiddleware
                 }
             }
             
-            // Check for missing or suspicious user agent
-            if (empty($userAgent) || strlen($userAgent) < 10) {
+            // Check for completely missing user agent (empty is suspicious)
+            if (empty($userAgent)) {
                 $isBot = true;
             }
             
-            // Check for rapid requests from same IP (basic rate limiting)
+            // Check for rapid requests from same IP (more lenient rate limiting)
             $cacheKey = 'honeypot_requests_' . $ip;
             $requestCount = cache()->get($cacheKey, 0);
             
-            if ($requestCount > 5) { // More than 5 requests per minute
+            if ($requestCount > 20) { // More than 20 requests per minute
                 $isBot = true;
             }
             
@@ -57,6 +57,7 @@ class HoneypotMiddleware
                     'ip' => $ip,
                     'user_agent' => $userAgent,
                     'url' => $request->fullUrl(),
+                    'request_count' => $requestCount,
                     'timestamp' => now()
                 ]);
                 

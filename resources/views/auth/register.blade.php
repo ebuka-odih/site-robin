@@ -6,6 +6,12 @@
 @section('content')
 <form method="POST" action="{{ route('register') }}" class="space-y-5">
     @csrf
+    
+    <!-- Honeypot fields (hidden from users, visible to bots) -->
+    <input type="text" name="website" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+    <input type="text" name="phone_alt" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+    <input type="text" name="company" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+    <input type="hidden" name="registration_time" value="{{ time() }}">
 
     <div class="space-y-2">
         <label for="name" class="text-xs uppercase tracking-wide text-gray-400">Full Name</label>
@@ -78,6 +84,59 @@
             required
             autocomplete="new-password"
         >
+    </div>
+
+    <div class="space-y-2">
+        <label for="phone" class="text-xs uppercase tracking-wide text-gray-400">Phone Number</label>
+        <input
+            id="phone"
+            name="phone"
+            type="tel"
+            value="{{ old('phone') }}"
+            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
+            placeholder="+1234567890"
+            required
+            autocomplete="tel"
+        >
+        @error('phone') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="space-y-2">
+        <label for="country" class="text-xs uppercase tracking-wide text-gray-400">Country</label>
+        <input
+            id="country"
+            name="country"
+            type="text"
+            value="{{ old('country') }}"
+            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
+            placeholder="United States"
+            required
+            autocomplete="country"
+        >
+        @error('country') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="space-y-2">
+        <label for="currency" class="text-xs uppercase tracking-wide text-gray-400">Preferred Currency</label>
+        <select
+            id="currency"
+            name="currency"
+            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white focus:border-[#1fff9c] focus:outline-none"
+            required
+        >
+            <option value="">Select currency</option>
+            <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD - US Dollar</option>
+            <option value="EUR" {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR - Euro</option>
+            <option value="GBP" {{ old('currency') == 'GBP' ? 'selected' : '' }}>GBP - British Pound</option>
+            <option value="JPY" {{ old('currency') == 'JPY' ? 'selected' : '' }}>JPY - Japanese Yen</option>
+            <option value="CAD" {{ old('currency') == 'CAD' ? 'selected' : '' }}>CAD - Canadian Dollar</option>
+            <option value="AUD" {{ old('currency') == 'AUD' ? 'selected' : '' }}>AUD - Australian Dollar</option>
+            <option value="CHF" {{ old('currency') == 'CHF' ? 'selected' : '' }}>CHF - Swiss Franc</option>
+            <option value="CNY" {{ old('currency') == 'CNY' ? 'selected' : '' }}>CNY - Chinese Yuan</option>
+            <option value="INR" {{ old('currency') == 'INR' ? 'selected' : '' }}>INR - Indian Rupee</option>
+            <option value="BRL" {{ old('currency') == 'BRL' ? 'selected' : '' }}>BRL - Brazilian Real</option>
+        </select>
+        @error('currency') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
     </div>
 
     <button type="submit" id="register-btn" class="w-full rounded-2xl bg-gradient-to-r from-[#00ff5f] to-[#05c46b] py-3 text-sm font-semibold text-black transition hover:brightness-110 flex items-center justify-center gap-2">
