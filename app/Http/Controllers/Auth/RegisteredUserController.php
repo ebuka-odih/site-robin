@@ -25,7 +25,7 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         // Honeypot validation - if any honeypot field is filled, it's likely a bot
-        $honeypotFields = ['website', 'phone_alt', 'company'];
+        $honeypotFields = ['hp_tag_a', 'hp_tag_b', 'hp_tag_c'];
         $filledHoneypotFields = [];
         
         foreach ($honeypotFields as $field) {

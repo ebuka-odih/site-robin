@@ -7,10 +7,10 @@
 <form method="POST" action="{{ route('register') }}" class="space-y-5">
     @csrf
     
-    <!-- Honeypot fields (hidden from users, visible to bots) -->
-    <input type="text" name="website" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
-    <input type="text" name="phone_alt" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
-    <input type="text" name="company" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+    <!-- Honeypot fields (renamed to avoid browser autofill) -->
+    <input type="text" name="hp_tag_a" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true" data-lpignore="true">
+    <input type="text" name="hp_tag_b" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true" data-lpignore="true">
+    <input type="text" name="hp_tag_c" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true" data-lpignore="true">
     <input type="hidden" name="registration_time" value="{{ time() }}">
 
     <div class="space-y-2">
@@ -57,33 +57,6 @@
             autocomplete="email"
         >
         @error('email') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
-    </div>
-
-    <div class="space-y-2">
-        <label for="password" class="text-xs uppercase tracking-wide text-gray-400">Password</label>
-        <input
-            id="password"
-            name="password"
-            type="password"
-            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
-            placeholder="Create password"
-            required
-            autocomplete="new-password"
-        >
-        @error('password') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
-    </div>
-
-    <div class="space-y-2">
-        <label for="password_confirmation" class="text-xs uppercase tracking-wide text-gray-400">Confirm Password</label>
-        <input
-            id="password_confirmation"
-            name="password_confirmation"
-            type="password"
-            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
-            placeholder="Repeat password"
-            required
-            autocomplete="new-password"
-        >
     </div>
 
     <div class="space-y-2">
@@ -137,6 +110,33 @@
             <option value="BRL" {{ old('currency') == 'BRL' ? 'selected' : '' }}>BRL - Brazilian Real</option>
         </select>
         @error('currency') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="space-y-2">
+        <label for="password" class="text-xs uppercase tracking-wide text-gray-400">Password</label>
+        <input
+            id="password"
+            name="password"
+            type="password"
+            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
+            placeholder="Create password"
+            required
+            autocomplete="new-password"
+        >
+        @error('password') <p class="text-xs text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="space-y-2">
+        <label for="password_confirmation" class="text-xs uppercase tracking-wide text-gray-400">Confirm Password</label>
+        <input
+            id="password_confirmation"
+            name="password_confirmation"
+            type="password"
+            class="w-full rounded-2xl border border-[#161616] bg-[#030303] px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
+            placeholder="Repeat password"
+            required
+            autocomplete="new-password"
+        >
     </div>
 
     <button type="submit" id="register-btn" class="w-full rounded-2xl bg-gradient-to-r from-[#00ff5f] to-[#05c46b] py-3 text-sm font-semibold text-black transition hover:brightness-110 flex items-center justify-center gap-2">
