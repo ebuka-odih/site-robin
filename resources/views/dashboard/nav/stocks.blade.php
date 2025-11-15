@@ -8,6 +8,37 @@
         <p class="text-gray-400 text-sm">Live prices pulled from Finnhub are refreshed by the background scheduler.</p>
     </div>
 
+    <form method="GET" action="{{ route('user.nav.stocks') }}" class="flex gap-3">
+        <div class="flex-1 relative">
+            <input
+                type="text"
+                name="search"
+                value="{{ $search ?? '' }}"
+                placeholder="Search by symbol or name (e.g., AAPL, Apple)"
+                class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 pl-10 text-white placeholder-gray-500 focus:border-[#1fff9c] focus:outline-none"
+            >
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </div>
+        <button type="submit" class="rounded-2xl bg-[#00ff5f] px-6 py-3 text-black font-semibold text-sm hover:brightness-110 transition">
+            Search
+        </button>
+        @if($search)
+            <a href="{{ route('user.nav.stocks') }}" class="rounded-2xl border border-[#1f1f1f] px-6 py-3 text-gray-400 font-semibold text-sm hover:text-white hover:border-[#1fff9c]/30 transition">
+                Clear
+            </a>
+        @endif
+    </form>
+
+    @if($search)
+        <div class="flex items-center gap-2 text-sm">
+            <span class="text-gray-400">Search results for:</span>
+            <span class="text-white font-semibold">"{{ $search }}"</span>
+            <span class="text-gray-500">({{ $stocks->total() }} {{ $stocks->total() === 1 ? 'result' : 'results' }})</span>
+        </div>
+    @endif
+
     <div class="rounded-[32px] border border-[#101010] bg-[#040404] overflow-hidden">
         <div class="grid grid-cols-12 px-4 py-3 text-xs uppercase tracking-wide text-gray-500 border-b border-[#121212]">
             <span class="col-span-4">Symbol</span>
@@ -20,7 +51,7 @@
                 @php
                     $isPositive = (float) $stock->price_change_24h >= 0;
                 @endphp
-                <div class="grid grid-cols-12 items-center px-4 py-4 text-sm">
+                <a href="{{ route('user.liveTrading.trade', ['asset_type' => 'stock', 'symbol' => $stock->symbol]) }}" class="grid grid-cols-12 items-center px-4 py-4 text-sm hover:bg-[#0a0a0a] transition-colors cursor-pointer">
                     <div class="col-span-4">
                         <p class="font-semibold">{{ $stock->symbol }}</p>
                         <p class="text-xs text-gray-500">{{ $stock->name }}</p>
@@ -36,7 +67,7 @@
                     <div class="col-span-2 text-right text-xs text-gray-500">
                         {{ optional($stock->updated_at)->diffForHumans() ?? '—' }}
                     </div>
-                </div>
+                </a>
             @endforeach
         </div>
     </div>

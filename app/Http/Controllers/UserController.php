@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -66,12 +67,67 @@ class UserController extends Controller
         $winRate = $totalTrades > 0 ? ($winningTrades / $totalTrades) * 100 : 0;
         $avgProfit = $closedTrades->count() > 0 ? $closedTrades->avg('profit_loss') : 0;
         
-        // Get recent transactions
+        // Get recent transactions for activity feed
         $recentTransactions = $user->holdingTransactions()
             ->with('asset')
             ->latest()
             ->take(5)
             ->get();
+        
+        // Get recent activity (deposits, withdrawals, trades)
+        $recentDeposits = $user->deposits()
+            ->where('status', 1) // Only approved deposits
+            ->latest()
+            ->take(3)
+            ->get()
+            ->map(function($deposit) use ($user) {
+                return [
+                    'type' => 'deposit',
+                    'title' => 'Deposit',
+                    'amount' => $deposit->amount,
+                    'formatted_amount' => $user->formatAmount($deposit->amount),
+                    'created_at' => $deposit->created_at,
+                    'time_ago' => $deposit->created_at->diffForHumans(),
+                ];
+            });
+        
+        $recentWithdrawals = $user->withdrawals()
+            ->where('status', 1) // Only approved withdrawals
+            ->latest()
+            ->take(3)
+            ->get()
+            ->map(function($withdrawal) use ($user) {
+                return [
+                    'type' => 'withdrawal',
+                    'title' => 'Withdrawal',
+                    'amount' => -$withdrawal->amount,
+                    'formatted_amount' => $user->formatAmount($withdrawal->amount),
+                    'created_at' => $withdrawal->created_at,
+                    'time_ago' => $withdrawal->created_at->diffForHumans(),
+                ];
+            });
+        
+        $recentClosedTrades = $closedTrades
+            ->take(3)
+            ->map(function($trade) use ($user) {
+                return [
+                    'type' => $trade->profit_loss >= 0 ? 'trade_profit' : 'trade_loss',
+                    'title' => $trade->profit_loss >= 0 ? 'Trade Profit' : 'Trade Loss',
+                    'amount' => $trade->profit_loss,
+                    'formatted_amount' => $user->formatAmount(abs($trade->profit_loss)),
+                    'created_at' => $trade->updated_at,
+                    'time_ago' => $trade->updated_at->diffForHumans(),
+                ];
+            });
+        
+        // Combine and sort all activities by date
+        $recentActivity = collect()
+            ->merge($recentDeposits)
+            ->merge($recentWithdrawals)
+            ->merge($recentClosedTrades)
+            ->sortByDesc('created_at')
+            ->take(5)
+            ->values();
         
         // Get copy trading data
         $copyTrades = $user->copiedTrades()->get();
@@ -85,13 +141,26 @@ class UserController extends Controller
             'DIS', 'LLY', 'COST', 'BRK.A', 'JNJ'
         ];
 
-        $stockAssets = Asset::where('type', 'stock')
+        $preferredStocks = Asset::where('type', 'stock')
             ->whereIn('symbol', $topSymbols)
             ->get()
             ->sortBy(function ($asset) use ($topSymbols) {
                 return array_search($asset->symbol, $topSymbols);
             })
             ->values();
+
+        if ($preferredStocks->count() < 12) {
+            $additionalNeeded = 12 - $preferredStocks->count();
+            $additionalStocks = Asset::where('type', 'stock')
+                ->whereNotIn('id', $preferredStocks->pluck('id'))
+                ->orderByDesc('price_change_24h')
+                ->take($additionalNeeded)
+                ->get();
+
+            $stockAssets = $preferredStocks->merge($additionalStocks);
+        } else {
+            $stockAssets = $preferredStocks;
+        }
         $accountTabs = [
             [
                 'id' => 'investing',
@@ -141,6 +210,7 @@ class UserController extends Controller
             'activeBots' => $activeBots,
             'totalBotProfit' => $totalBotProfit,
             'recentTransactions' => $recentTransactions,
+            'recentActivity' => $recentActivity,
             'copyTrades' => $copyTrades,
             'activeCopyTrades' => $activeCopyTrades,
             'stockAssets' => $stockAssets,
@@ -158,22 +228,88 @@ class UserController extends Controller
         return view('dashboard.nav.trade', compact('user', 'stockAssets', 'cryptoAssets'));
     }
 
-    public function stocksDirectory()
+    public function stocksDirectory(Request $request)
     {
         $user = Auth::user();
+        $search = $request->input('search');
+        
         $stocks = Asset::where('type', 'stock')
+            ->when($search, function($query, $search) {
+                return $query->where(function($q) use ($search) {
+                    $q->where('symbol', 'like', '%' . $search . '%')
+                      ->orWhere('name', 'like', '%' . $search . '%');
+                });
+            })
             ->orderByDesc('market_cap')
             ->orderByDesc('price_change_24h')
-            ->paginate(30);
+            ->paginate(30)
+            ->appends(['search' => $search]);
 
-        return view('dashboard.nav.stocks', compact('user', 'stocks'));
+        return view('dashboard.nav.stocks', compact('user', 'stocks', 'search'));
     }
 
     public function wallet()
     {
         $user = Auth::user();
-        $recentTransactions = $user->holdingTransactions()->with('asset')->latest()->take(5)->get();
-        return view('dashboard.nav.wallet', compact('user', 'recentTransactions'));
+        $portfolioTransactions = $user->holdingTransactions()
+            ->with('asset')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($transaction) {
+                $isBuy = strtolower($transaction->type ?? '') === 'buy';
+                $amount = (float) ($transaction->total_amount ?? 0);
+
+                return [
+                    'label' => ucfirst($transaction->type ?? 'Trade'),
+                    'subtext' => $transaction->asset->symbol ?? 'Portfolio',
+                    'amount' => $isBuy ? -abs($amount) : abs($amount),
+                    'timestamp' => $transaction->created_at,
+                ];
+            });
+
+        $depositTransactions = $user->deposits()
+            ->with('payment_method')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($deposit) {
+                $methodLabel = optional($deposit->payment_method)->name
+                    ?? Str::title($deposit->wallet_type ?? 'Wallet');
+
+                return [
+                    'label' => 'Deposit',
+                    'subtext' => $methodLabel,
+                    'amount' => (float) $deposit->amount,
+                    'timestamp' => $deposit->created_at,
+                ];
+            });
+
+        $withdrawalTransactions = $user->withdrawals()
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($withdrawal) {
+                return [
+                    'label' => 'Withdrawal',
+                    'subtext' => Str::title($withdrawal->payment_method ?? 'Wallet'),
+                    'amount' => -(float) $withdrawal->amount,
+                    'timestamp' => $withdrawal->created_at,
+                ];
+            });
+
+        $recentMovements = collect()
+            ->merge($portfolioTransactions)
+            ->merge($depositTransactions)
+            ->merge($withdrawalTransactions)
+            ->sortByDesc('timestamp')
+            ->take(6)
+            ->values();
+
+        return view('dashboard.nav.wallet', [
+            'user' => $user,
+            'recentMovements' => $recentMovements,
+        ]);
     }
 
     public function profileOverview()

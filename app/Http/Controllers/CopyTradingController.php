@@ -26,7 +26,7 @@ class CopyTradingController extends Controller
             ->pluck('copy_trader_id')
             ->toArray();
             
-        return view('dashboard.copy-trade', compact('traders', 'user', 'copiedTrades', 'stoppedCopyTrades'));
+        return view('dashboard.nav.copy-trading', compact('traders', 'user', 'copiedTrades', 'stoppedCopyTrades'));
     }
 
     public function store(Request $request)

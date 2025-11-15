@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\AssetPriceService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -15,6 +16,13 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
+
+Artisan::command('events:update-prices', function (AssetPriceService $service) {
+    $this->comment('Running price update event pipeline...');
+    $service->updateCryptoPrices();
+    $service->updateStockPrices();
+    $this->info('Price update events dispatched.');
+})->purpose('Run the price update event workflow');
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +41,7 @@ Schedule::call(function () {
 
 // Real-time Price Updates
 Schedule::command('prices:update-scheduled')->everyThirtySeconds();
+Schedule::command('events:update-prices')->everyMinute();
 
 // Asset Price Updates (Crypto & Stocks)
 Schedule::command('assets:update-prices')->everyFiveMinutes();

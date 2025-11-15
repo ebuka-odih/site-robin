@@ -8,7 +8,7 @@
         <p class="text-sm text-gray-400">Top up your wallets with streamlined steps and transparent history.</p>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="grid gap-4 md:grid-cols-2">
         <div class="rounded-3xl border border-[#111] bg-[#050505] p-5">
             <p class="text-xs text-gray-500 uppercase tracking-wide">Trading balance</p>
             <p class="text-2xl font-semibold">${{ number_format($user->balance ?? 0, 2) }}</p>
@@ -18,11 +18,6 @@
             <p class="text-xs text-gray-500 uppercase tracking-wide">Holding balance</p>
             <p class="text-2xl font-semibold">${{ number_format($user->holding_balance ?? 0, 2) }}</p>
             <p class="text-xs text-gray-500">Long term growth positions.</p>
-        </div>
-        <div class="rounded-3xl border border-[#111] bg-[#050505] p-5">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Staking balance</p>
-            <p class="text-2xl font-semibold">${{ number_format($user->staking_balance ?? 0, 2) }}</p>
-            <p class="text-xs text-gray-500">Generating passive yield.</p>
         </div>
     </div>
 
@@ -50,7 +45,6 @@
                     <option value="balance" {{ old('wallet_type') == 'balance' ? 'selected' : '' }}>Main balance</option>
                     <option value="trading" {{ old('wallet_type') == 'trading' ? 'selected' : '' }}>Trading</option>
                     <option value="holding" {{ old('wallet_type') == 'holding' ? 'selected' : '' }}>Holding</option>
-                    <option value="staking" {{ old('wallet_type') == 'staking' ? 'selected' : '' }}>Staking</option>
                 </select>
             </div>
 
@@ -213,10 +207,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(addressInput.value || '');
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+    copyBtn.addEventListener('click', async () => {
+        const address = addressInput.value || '';
+        
+        if (!address) {
+            copyBtn.textContent = 'No address!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+            return;
+        }
+
+        try {
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(address);
+                copyBtn.textContent = 'Copied!';
+                copyBtn.classList.add('bg-[#1fff9c]', 'text-black');
+                copyBtn.classList.remove('border-[#1fff9c]/40', 'text-[#1fff9c]');
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy';
+                    copyBtn.classList.remove('bg-[#1fff9c]', 'text-black');
+                    copyBtn.classList.add('border-[#1fff9c]/40', 'text-[#1fff9c]');
+                }, 1500);
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = address;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    copyBtn.textContent = 'Copied!';
+                    copyBtn.classList.add('bg-[#1fff9c]', 'text-black');
+                    copyBtn.classList.remove('border-[#1fff9c]/40', 'text-[#1fff9c]');
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copy';
+                        copyBtn.classList.remove('bg-[#1fff9c]', 'text-black');
+                        copyBtn.classList.add('border-[#1fff9c]/40', 'text-[#1fff9c]');
+                    }, 1500);
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                    copyBtn.textContent = 'Failed!';
+                    setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+                } finally {
+                    document.body.removeChild(textArea);
+                }
+            }
+        } catch (err) {
+            console.error('Copy failed:', err);
+            copyBtn.textContent = 'Failed!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+        }
     });
 
     form.addEventListener('submit', () => {

@@ -55,17 +55,17 @@
             <a href="{{ route('user.deposit') }}" class="text-xs text-gray-400 hover:text-white">All transactions</a>
         </div>
         <div class="space-y-3">
-            @forelse($recentTransactions as $transaction)
+            @forelse($recentMovements as $movement)
                 <div class="flex items-center justify-between py-2 border-b border-[#0f0f0f] last:border-b-0">
                     <div>
-                        <p class="text-sm font-semibold text-white">{{ $transaction->type }}</p>
-                        <p class="text-xs text-gray-500">{{ $transaction->created_at->diffForHumans() }}</p>
+                        <p class="text-sm font-semibold text-white">{{ $movement['label'] }}</p>
+                        <p class="text-xs text-gray-500">{{ optional($movement['timestamp'])->diffForHumans() ?? '—' }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-semibold {{ $transaction->amount >= 0 ? 'text-green-400' : 'text-red-400' }}">
-                            {{ $transaction->amount >= 0 ? '+' : '' }}${{ number_format($transaction->amount, 2) }}
+                        <p class="text-sm font-semibold {{ $movement['amount'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $movement['amount'] >= 0 ? '+' : '' }}${{ number_format(abs($movement['amount']), 2) }}
                         </p>
-                        <p class="text-xs text-gray-500">{{ $transaction->asset->symbol ?? 'Wallet' }}</p>
+                        <p class="text-xs text-gray-500">{{ $movement['subtext'] }}</p>
                     </div>
                 </div>
             @empty

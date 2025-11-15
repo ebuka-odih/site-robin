@@ -25,7 +25,7 @@
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold bg-[#00ff5f] text-black" data-target="#stock-list">Stocks</button>
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#crypto-list">Crypto</button>
             </div>
-            <a href="{{ route('user.liveTrading.index') }}" class="text-xs text-gray-400 hover:text-white">See market</a>
+            <a href="{{ route('user.nav.stocks') }}" class="text-xs text-gray-400 hover:text-white">See market</a>
         </div>
         <div id="stock-list" class="grid gap-3 md:grid-cols-2">
             @forelse($stockAssets as $asset)

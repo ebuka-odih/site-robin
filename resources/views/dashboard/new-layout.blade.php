@@ -240,7 +240,7 @@
 <body class="bg-black text-white min-h-screen dark">
     <div class="h-screen bg-black flex flex-col">
         <!-- Page Content -->
-        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-black">
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-black pb-32">
             <div class="mx-auto max-w-5xl px-4 py-10">
                 @yield('content')
             </div>
@@ -264,6 +264,14 @@
                         </svg>
                     </div>
                     <span>Trade</span>
+                </a>
+                <a href="{{ route('user.copyTrading.index') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.copyTrading.*') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.copyTrading.*') ? 'border border-[#a855f7] text-[#a855f7]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01" />
+                        </svg>
+                    </div>
+                    <span>Copy</span>
                 </a>
                 <a href="{{ route('user.nav.wallet') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.wallet') ? 'text-white' : 'hover:text-white' }}">
                     <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.wallet') ? 'border border-[#facc15] text-[#facc15]' : '' }}">

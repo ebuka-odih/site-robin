@@ -4,7 +4,7 @@
 @php
     $accountTabs = $accountTabs ?? [];
     $timeRanges = ['1D', '1W', '1M', '3M', '1Y', 'All'];
-    $watchlist = ($stockAssets ?? collect())->take(15);
+    $watchlist = ($stockAssets ?? collect())->take(12);
     $accountTabsCollection = collect($accountTabs);
     $investingTab = $accountTabsCollection->firstWhere('id', 'investing') ?? $accountTabsCollection->first();
     $pnlTab = $accountTabsCollection->firstWhere('id', 'pnl');
@@ -83,7 +83,7 @@
             <div class="px-6 pb-6 pt-4">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-sm uppercase tracking-wide text-gray-400">Watchlist</h3>
-                    <a href="{{ route('user.nav.stocks') }}" class="text-xs text-[#a1a1a1] hover:text-white">View all stocks</a>
+                    <a href="{{ url('user/stocks-directory') }}" class="text-xs text-[#a1a1a1] hover:text-white">View all stocks</a>
                 </div>
                 <div class="space-y-3">
                     @forelse ($watchlist as $stock)
@@ -132,88 +132,69 @@
                     @endforelse
                 </div>
                 <div class="mt-4 text-center">
-                    <a href="{{ route('user.nav.stocks') }}" class="inline-flex items-center justify-center rounded-full border border-[#1fff9c]/30 px-5 py-2 text-xs font-semibold text-[#1fff9c] hover:border-[#1fff9c]">
+                    <a href="{{ url('user/stocks-directory') }}" class="inline-flex items-center justify-center rounded-full border border-[#1fff9c]/30 px-5 py-2 text-xs font-semibold text-[#1fff9c] hover:border-[#1fff9c]">
                         View all stocks
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Investing</p>
-                <p id="activeBalanceCard" class="text-2xl font-semibold text-white">{{ data_get($investingTab, 'balance', '$0.00') }}</p>
-                <p id="activeChangeCard" class="text-xs {{ data_get($investingTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
-                    {{ data_get($investingTab, 'change', 'No data yet') }}
-                </p>
-            </div>
-            <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">PNL</p>
-                <p class="text-2xl font-semibold text-white">{{ data_get($pnlTab, 'balance', '$0.00') }}</p>
-                <p class="text-xs {{ data_get($pnlTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
-                    {{ data_get($pnlTab, 'change', 'No data yet') }}
-                </p>
-            </div>
-            <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Balance</p>
-                <p class="text-2xl font-semibold text-white">{{ data_get($walletTab, 'balance', '$0.00') }}</p>
-                <p class="text-xs text-gray-400">{{ data_get($walletTab, 'change', 'Available to invest') }}</p>
-            </div>
-            <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
-                <p class="text-xs uppercase text-gray-500">Rewards</p>
-                <p class="text-2xl font-semibold text-white">2 offers</p>
-                <p class="text-xs text-green-400">+1 new offer</p>
-            </div>
-        </div>
-
-        <div class="rounded-3xl border border-[#151515] bg-[#050505] p-6">
+        <div class="rounded-3xl border border-[#151515] bg-[#050505] p-6 mb-48">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h3 class="text-lg font-semibold text-white">Recent Activity</h3>
-                <button class="text-sm text-gray-400 hover:text-white">View all</button>
+                <a href="{{ route('user.transactions.index') }}" class="text-sm text-gray-400 hover:text-white">View all</a>
             </div>
             <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-[#101010] pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20 text-green-300">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
-                            </svg>
+                @forelse($recentActivity ?? [] as $index => $activity)
+                    <div class="flex items-center justify-between {{ $index < count($recentActivity) - 1 ? 'border-b border-[#101010] pb-4' : '' }}">
+                        <div class="flex items-center gap-3">
+                            @if($activity['type'] === 'deposit')
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20 text-green-300">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </div>
+                            @elseif($activity['type'] === 'withdrawal')
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 text-red-300">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                    </svg>
+                                </div>
+                            @elseif($activity['type'] === 'trade_profit')
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20 text-blue-300">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                </div>
+                            @else
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 text-red-300">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                                    </svg>
+                                </div>
+                            @endif
+                            <div>
+                                <p class="text-sm font-medium text-white">{{ $activity['title'] }}</p>
+                                <p class="text-xs text-gray-500">{{ $activity['time_ago'] }}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-white">Deposit</p>
-                            <p class="text-xs text-gray-500">2 hours ago</p>
-                        </div>
+                        <span class="text-sm font-semibold {{ $activity['amount'] >= 0 ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $activity['amount'] >= 0 ? '+' : '-' }}{{ $activity['formatted_amount'] }}
+                        </span>
                     </div>
-                    <span class="text-sm font-semibold text-green-400">+$1,000.00</span>
-                </div>
-                <div class="flex items-center justify-between border-b border-[#101010] pb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20 text-blue-200">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v4H3zm3 4v14h12V7" />
-                            </svg>
+                @empty
+                    <div class="text-center py-8">
+                        <div class="flex justify-center mb-3">
+                            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-800">
+                                <svg class="h-6 w-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-white">Trade Profit</p>
-                            <p class="text-xs text-gray-500">5 hours ago</p>
-                        </div>
+                        <p class="text-sm text-gray-400">No recent activity</p>
+                        <p class="text-xs text-gray-500 mt-1">Your transactions will appear here</p>
                     </div>
-                    <span class="text-sm font-semibold text-green-400">+$150.75</span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/20 text-purple-200">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-white">Copy Trade</p>
-                            <p class="text-xs text-gray-500">1 day ago</p>
-                        </div>
-                    </div>
-                    <span class="text-sm font-semibold text-green-400">+$75.25</span>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -223,11 +204,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('portfolioChart').getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(0, 255, 95, 0.3)');
-            gradient.addColorStop(1, 'rgba(0, 255, 95, 0)');
-
+            const chartCanvas = document.getElementById('portfolioChart');
             const chartDataSets = {
                 '1D': {
                     labels: ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
@@ -256,37 +233,46 @@
             };
 
             const defaultRange = '1M';
+            let portfolioChart = null;
 
-            const portfolioChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartDataSets[defaultRange].labels,
-                    datasets: [{
-                        label: 'Portfolio Value',
-                        data: chartDataSets[defaultRange].data,
-                        borderColor: '#00ff5f',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointRadius: 0,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, beginAtZero: false },
-                        x: {
-                            ticks: { color: '#404040', font: { size: 12 }},
-                            grid: { display: false }
+            if (chartCanvas && typeof Chart !== 'undefined') {
+                const ctx = chartCanvas.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(0, 255, 95, 0.3)');
+                gradient.addColorStop(1, 'rgba(0, 255, 95, 0)');
+
+                portfolioChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartDataSets[defaultRange].labels,
+                        datasets: [{
+                            label: 'Portfolio Value',
+                            data: chartDataSets[defaultRange].data,
+                            borderColor: '#00ff5f',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { display: false, beginAtZero: false },
+                            x: {
+                                ticks: { color: '#404040', font: { size: 12 }},
+                                grid: { display: false }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             const updateChartRange = (range) => {
+                if (!portfolioChart) return;
                 const dataset = chartDataSets[range] || chartDataSets[defaultRange];
                 portfolioChart.data.labels = dataset.labels;
                 portfolioChart.data.datasets[0].data = dataset.data;
@@ -296,8 +282,6 @@
                     const tabs = document.querySelectorAll('#accountTabs button');
                     const balanceEl = document.getElementById('activeBalance');
                     const changeEl = document.getElementById('activeChange');
-                    const balanceCardEl = document.getElementById('activeBalanceCard');
-                    const changeCardEl = document.getElementById('activeChangeCard');
                     const tabData = @json($accountTabs);
 
             tabs.forEach((tab) => {
@@ -305,44 +289,66 @@
                     const currentId = tab.dataset.account;
                     const currentData = tabData.find(item => item.id === currentId) || tabData[0];
 
-                    balanceEl.textContent = currentData.balance;
-                    changeEl.textContent = currentData.change;
-                    balanceCardEl.textContent = currentData.balance;
-                    changeCardEl.textContent = currentData.change;
-
-                    const isPositive = currentData.isPositive ?? true;
-                    changeEl.classList.toggle('text-green-400', isPositive);
-                    changeEl.classList.toggle('text-red-400', !isPositive);
-                    changeCardEl.classList.toggle('text-green-400', isPositive);
-                    changeCardEl.classList.toggle('text-red-400', !isPositive);
+                    // Update main balance display
+                    if (balanceEl) {
+                        balanceEl.textContent = currentData.balance;
+                    }
+                    
+                    if (changeEl) {
+                        changeEl.textContent = currentData.change;
+                        const isPositive = currentData.isPositive ?? true;
+                        if (isPositive) {
+                            changeEl.classList.add('text-green-400');
+                            changeEl.classList.remove('text-red-400');
+                        } else {
+                            changeEl.classList.add('text-red-400');
+                            changeEl.classList.remove('text-green-400');
+                        }
+                    }
 
                     tabs.forEach(btn => {
                         const isActive = btn === tab;
                         const activeIcon = btn.querySelector('[data-icon-active]');
                         const inactiveIcon = btn.querySelector('[data-icon-inactive]');
                         const ring = btn.querySelector('[data-icon-ring]');
-                        const fnBalance = btn.querySelector('[data-balance]');
-                        const originalValue = fnBalance ? fnBalance.dataset.balance : '';
+                        const fnBalance = btn.querySelector('.tab-balance');
+                        const btnDataId = btn.dataset.account;
+                        const btnData = tabData.find(item => item.id === btnDataId) || tabData[0];
 
+                        // Toggle icons
                         if (activeIcon && inactiveIcon) {
-                            activeIcon.classList.toggle('hidden', !isActive);
-                            inactiveIcon.classList.toggle('hidden', isActive);
+                            if (isActive) {
+                                activeIcon.classList.remove('hidden');
+                                inactiveIcon.classList.add('hidden');
+                            } else {
+                                activeIcon.classList.add('hidden');
+                                inactiveIcon.classList.remove('hidden');
+                            }
                         }
 
+                        // Toggle ring colors
                         if (ring) {
-                            ring.classList.toggle('border-[#1fff9c]', isActive);
-                            ring.classList.toggle('text-[#1fff9c]', isActive);
-                            ring.classList.toggle('border-[#2c2c2c]', !isActive);
-                            ring.classList.toggle('text-gray-400', !isActive);
+                            if (isActive) {
+                                ring.classList.add('border-[#1fff9c]', 'text-[#1fff9c]');
+                                ring.classList.remove('border-[#2c2c2c]', 'text-gray-400');
+                            } else {
+                                ring.classList.remove('border-[#1fff9c]', 'text-[#1fff9c]');
+                                ring.classList.add('border-[#2c2c2c]', 'text-gray-400');
+                            }
                         }
 
-                        btn.classList.toggle('border-[#1fff9c]', isActive);
-                        btn.classList.toggle('bg-[#071c11]', isActive);
-                        btn.classList.toggle('border-[#242424]', !isActive);
-                        btn.classList.toggle('bg-[#050505]', !isActive);
+                        // Toggle button styles
+                        if (isActive) {
+                            btn.classList.add('border-[#1fff9c]', 'bg-[#071c11]');
+                            btn.classList.remove('border-[#242424]', 'bg-[#050505]');
+                        } else {
+                            btn.classList.remove('border-[#1fff9c]', 'bg-[#071c11]');
+                            btn.classList.add('border-[#242424]', 'bg-[#050505]');
+                        }
 
+                        // Show balance for active card, hide for inactive
                         if (fnBalance) {
-                            fnBalance.textContent = isActive ? originalValue : '•••••';
+                            fnBalance.textContent = isActive ? btnData.balance : '•••••';
                         }
                     });
                 });
