@@ -2,14 +2,13 @@
 
 @section('content')
 @php
-    $accountTabs = [
-        ['id' => 'investing', 'label' => 'Investing', 'balance' => '$12.14', 'change' => '+0.33% past month', 'isPositive' => true],
-        ['id' => 'pnl', 'label' => 'PNL', 'balance' => '$18,932.22', 'change' => '+0.21% past quarter', 'isPositive' => true],
-        ['id' => 'wallet', 'label' => 'Wallet Balance', 'balance' => '$620.48', 'change' => '-0.18% past month', 'isPositive' => false],
-    ];
-
+    $accountTabs = $accountTabs ?? [];
     $timeRanges = ['1D', '1W', '1M', '3M', '1Y', 'All'];
     $watchlist = ($stockAssets ?? collect())->take(15);
+    $accountTabsCollection = collect($accountTabs);
+    $investingTab = $accountTabsCollection->firstWhere('id', 'investing') ?? $accountTabsCollection->first();
+    $pnlTab = $accountTabsCollection->firstWhere('id', 'pnl');
+    $walletTab = $accountTabsCollection->firstWhere('id', 'wallet');
 @endphp
 
     <div class="space-y-8 text-white">
@@ -53,8 +52,10 @@
             <div class="flex flex-col gap-4 px-6 pb-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm uppercase text-gray-400">Balance</p>
-                    <p id="activeBalance" class="text-4xl font-semibold">{{ $accountTabs[0]['balance'] }}</p>
-                    <p id="activeChange" class="text-sm text-green-400">{{ $accountTabs[0]['change'] }}</p>
+                    <p id="activeBalance" class="text-4xl font-semibold">{{ data_get($investingTab, 'balance', '$0.00') }}</p>
+                    <p id="activeChange" class="text-sm {{ data_get($investingTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
+                        {{ data_get($investingTab, 'change', 'No data yet') }}
+                    </p>
                 </div>
                 <button class="self-start rounded-full bg-[#c6ff00] px-5 py-2 text-sm font-semibold text-black">
                     Offers
@@ -141,18 +142,22 @@
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
                 <p class="text-xs uppercase text-gray-500">Investing</p>
-                <p id="activeBalanceCard" class="text-2xl font-semibold text-white">{{ $accountTabs[0]['balance'] }}</p>
-                <p id="activeChangeCard" class="text-xs text-green-400">{{ $accountTabs[0]['change'] }}</p>
+                <p id="activeBalanceCard" class="text-2xl font-semibold text-white">{{ data_get($investingTab, 'balance', '$0.00') }}</p>
+                <p id="activeChangeCard" class="text-xs {{ data_get($investingTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
+                    {{ data_get($investingTab, 'change', 'No data yet') }}
+                </p>
             </div>
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
                 <p class="text-xs uppercase text-gray-500">PNL</p>
-                <p class="text-2xl font-semibold text-white">$12.14</p>
-                <p class="text-xs text-green-400">+$0.04 today</p>
+                <p class="text-2xl font-semibold text-white">{{ data_get($pnlTab, 'balance', '$0.00') }}</p>
+                <p class="text-xs {{ data_get($pnlTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
+                    {{ data_get($pnlTab, 'change', 'No data yet') }}
+                </p>
             </div>
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
                 <p class="text-xs uppercase text-gray-500">Balance</p>
-                <p class="text-2xl font-semibold text-white">$8,210.50</p>
-                <p class="text-xs text-green-400">+1.2% this week</p>
+                <p class="text-2xl font-semibold text-white">{{ data_get($walletTab, 'balance', '$0.00') }}</p>
+                <p class="text-xs text-gray-400">{{ data_get($walletTab, 'change', 'Available to invest') }}</p>
             </div>
             <div class="rounded-3xl border border-[#151515] bg-[#050505] p-5">
                 <p class="text-xs uppercase text-gray-500">Rewards</p>
@@ -304,6 +309,12 @@
                     changeEl.textContent = currentData.change;
                     balanceCardEl.textContent = currentData.balance;
                     changeCardEl.textContent = currentData.change;
+
+                    const isPositive = currentData.isPositive ?? true;
+                    changeEl.classList.toggle('text-green-400', isPositive);
+                    changeEl.classList.toggle('text-red-400', !isPositive);
+                    changeCardEl.classList.toggle('text-green-400', isPositive);
+                    changeCardEl.classList.toggle('text-red-400', !isPositive);
 
                     tabs.forEach(btn => {
                         const isActive = btn === tab;

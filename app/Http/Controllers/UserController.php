@@ -44,6 +44,12 @@ class UserController extends Controller
         // Get user's holdings data
         $holdings = $user->holdings()->with('asset')->get();
         $totalHoldingsValue = $holdings->sum('current_value');
+        $totalInvestedInStocks = $holdings->sum('total_invested');
+        $totalStockPnl = $holdings->sum('unrealized_pnl');
+        $currentHoldingsValue = $holdings->sum('current_value');
+        $investingChangePercent = $totalInvestedInStocks > 0
+            ? (($currentHoldingsValue - $totalInvestedInStocks) / $totalInvestedInStocks) * 100
+            : 0;
         
         // Get bot trading data
         $botTradings = $user->botTradings()->get();
@@ -86,7 +92,34 @@ class UserController extends Controller
                 return array_search($asset->symbol, $topSymbols);
             })
             ->values();
-        
+        $accountTabs = [
+            [
+                'id' => 'investing',
+                'label' => 'Investing',
+                'balance' => $user->formatAmount($totalInvestedInStocks),
+                'change' => $totalInvestedInStocks > 0
+                    ? sprintf('%+.2f%% overall', $investingChangePercent)
+                    : 'No holdings yet',
+                'isPositive' => $investingChangePercent >= 0,
+            ],
+            [
+                'id' => 'pnl',
+                'label' => 'PNL',
+                'balance' => $user->formatAmount($totalStockPnl),
+                'change' => $totalInvestedInStocks > 0
+                    ? ($totalStockPnl >= 0 ? 'Total unrealized profit' : 'Total unrealized loss')
+                    : 'No holdings yet',
+                'isPositive' => $totalStockPnl >= 0,
+            ],
+            [
+                'id' => 'wallet',
+                'label' => 'Wallet Balance',
+                'balance' => $user->formatAmount($user->balance ?? 0),
+                'change' => 'Available to invest',
+                'isPositive' => true,
+            ],
+        ];
+
         $dashboardData = [
             'user' => $user,
             'trades' => $trades,
@@ -111,6 +144,7 @@ class UserController extends Controller
             'copyTrades' => $copyTrades,
             'activeCopyTrades' => $activeCopyTrades,
             'stockAssets' => $stockAssets,
+            'accountTabs' => $accountTabs,
         ];
         
         return view('dashboard.new-index', $dashboardData);
