@@ -35,14 +35,13 @@
                         {{ config('app.name', 'Lightyear') }}
                     </a>
                     <div class="hidden items-center gap-5 text-sm text-[#190c42] md:flex">
-                        <a href="#" class="font-semibold text-[#120732]">Personal</a>
-                        <span class="h-5 w-px bg-[#e4dcff]"></span>
+                        <a href="#" class="rounded-full bg-[#f0edff] px-4 py-1.5 font-semibold text-[#5c28ff] hover:bg-[#e4dcff] transition-colors">Personal</a>
                         <a href="#" class="text-[#6b628d] hover:text-[#35276e]">Business</a>
                     </div>
                 </div>
                 <nav class="hidden items-center gap-6 text-sm text-[#35276e] md:flex">
                     <div class="group relative">
-                        <button class="flex items-center gap-1 font-medium">
+                        <button class="flex items-center gap-1 font-medium hover:text-[#120732]">
                             What we offer
                             <svg class="h-3 w-3 text-[#5c28ff]" fill="none" viewBox="0 0 10 6">
                                 <path d="M9 1L5 5 1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -55,9 +54,9 @@
                         </div>
                     </div>
                     <a href="#" class="text-[#35276e] hover:text-[#120732]">Pricing</a>
-                    <a href="#" class="text-[#35276e] hover:text-[#120732]">About</a>
+                    <a href="{{ route('about') }}" class="text-[#35276e] hover:text-[#120732]">About</a>
                     <div class="group relative">
-                        <button class="flex items-center gap-1 text-[#35276e]">
+                        <button class="flex items-center gap-1 text-[#35276e] hover:text-[#120732]">
                             More
                             <svg class="h-3 w-3 text-[#5c28ff]" fill="none" viewBox="0 0 10 6">
                                 <path d="M9 1L5 5 1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -71,10 +70,10 @@
                     </div>
                 </nav>
                 <div class="hidden items-center gap-3 md:flex">
-                    <a href="{{ route('login') }}" class="rounded-full bg-[#f7f4ff] px-5 py-2 text-sm font-semibold text-[#4e3ab8]">
+                    <a href="{{ route('login') }}" class="rounded-full px-5 py-2 text-sm font-medium text-[#35276e] hover:text-[#120732]">
                         Log in
                     </a>
-                    <a href="{{ route('register') }}" class="rounded-full bg-[#05c46b] px-6 py-2 text-sm font-semibold text-black shadow-lg shadow-[#05c46b]/40">
+                    <a href="{{ route('register') }}" class="rounded-full bg-[#5c28ff] px-6 py-2 text-sm font-semibold text-white hover:bg-[#4e1fff] transition-colors shadow-lg shadow-[#5c28ff]/30">
                         Sign up
                     </a>
                 </div>
