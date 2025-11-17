@@ -1,41 +1,37 @@
-@extends('dashboard.layout.app')
+i@extends('dashboard.new-layout')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6 text-white">
     <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold text-white">{{ $asset['name'] ?? $asset->name }}</h1>
-            <p class="text-gray-400 mt-1">{{ strtoupper($assetType) }} Trading</p>
+            <p class="text-xs uppercase tracking-wide text-[#08f58d]">Live Trading</p>
+            <h1 class="text-2xl font-semibold tracking-tight">{{ is_array($asset) ? $asset['name'] : $asset->name }}</h1>
+            <p class="text-sm text-gray-400">{{ strtoupper($assetType) }} Trading</p>
         </div>
-        <div class="mt-4 sm:mt-0">
-            <a href="{{ route('user.liveTrading.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors">
-                <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
-                </svg>
-                Back to Assets
-            </a>
-        </div>
+        <a href="{{ route('user.liveTrading.index') }}" class="rounded-full border border-[#1f1f1f] px-4 py-2 text-sm text-gray-400 hover:border-[#1fff9c]/30 hover:text-white transition">
+            ← Back
+        </a>
     </div>
 
     <!-- Trading Interface -->
-    <div class="grid grid-cols-1 lg:grid-cols-6 gap-6">
-        <!-- Chart Section (66% width) -->
-        <div class="lg:col-span-4">
-            <div class="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
-                <div class="mb-4">
-                    <h2 class="text-lg font-semibold text-white">Price Chart</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Chart Section (75% width) -->
+        <div class="lg:col-span-3">
+            <div class="rounded-[32px] border border-[#101010] bg-[#040404] overflow-hidden">
+                <div class="border-b border-[#121212] px-6 py-4">
+                    <h2 class="text-lg font-semibold">Price Chart</h2>
                 </div>
                 
                 <!-- TradingView Chart Container -->
-                <div class="relative w-full">
-                    <div id="tradingViewChart" class="w-full h-[400px] sm:h-[500px] lg:h-[700px] xl:h-[800px] bg-gray-900 rounded-lg overflow-hidden border border-gray-600">
-                        <div class="flex items-center justify-center h-full text-gray-400">
+                <div class="relative w-full p-2">
+                    <div id="tradingViewChart" class="w-full h-[500px] lg:h-[700px] bg-[#030303] rounded-xl overflow-hidden border border-[#0f0f0f]">
+                        <div class="flex items-center justify-center h-full text-gray-500">
                             <div class="text-center">
-                                <svg class="w-12 h-12 mx-auto mb-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                                <svg class="w-12 h-12 mx-auto mb-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
                                 </svg>
-                                <p>Loading chart...</p>
+                                <p class="text-sm">Loading chart...</p>
                             </div>
                         </div>
                     </div>
@@ -43,50 +39,59 @@
             </div>
         </div>
 
-        <!-- Trading Panel (33% width) -->
-        <div class="lg:col-span-2">
-            <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-                <h2 class="text-lg font-semibold text-white mb-4">Place Trade</h2>
+        <!-- Trading Panel (25% width) -->
+        <div class="lg:col-span-1">
+            <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 space-y-6">
+                <h2 class="text-lg font-semibold">Place Trade</h2>
+                
+                @if(session('success'))
+                    <div class="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        {{ $errors->first('trade') ?? $errors->first() }}
+                    </div>
+                @endif
                 
                 <!-- Current Price Display -->
-                <div class="mb-6 p-4 bg-gray-700 rounded-lg">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-white">${{ number_format($asset['current_price'] ?? $asset->current_price, 4) }}</div>
-                        <div class="text-sm text-gray-400 mt-1">
-                            @php
-                                $change = $asset['price_change_24h'] ?? $asset->price_change_24h;
-                                $changeColor = $change >= 0 ? 'text-green-400' : 'text-red-400';
-                                $changeIcon = $change >= 0 ? '↗' : '↘';
-                            @endphp
-                            <span class="{{ $changeColor }}">{{ $changeIcon }} {{ number_format(abs($change), 2) }}%</span>
-                            <span class="text-gray-500">24h</span>
-                        </div>
-                    </div>
+                <div class="rounded-2xl bg-[#0a0a0a] p-6 text-center">
+                    <p class="text-4xl font-bold">${{ number_format(is_array($asset) ? $asset['current_price'] : $asset->current_price, 4) }}</p>
+                    @php
+                        $change = is_array($asset) ? $asset['price_change_24h'] : $asset->price_change_24h;
+                        $changeColor = $change >= 0 ? 'text-green-400' : 'text-red-400';
+                        $changeIcon = $change >= 0 ? '↗' : '↘';
+                    @endphp
+                    <p class="text-sm {{ $changeColor }} mt-2">
+                        {{ $changeIcon }} {{ number_format(abs($change), 2) }}% <span class="text-gray-500">24h</span>
+                    </p>
                 </div>
 
                 <!-- Trading Form -->
                 <form id="tradingForm" class="space-y-4">
                     @csrf
                     <input type="hidden" name="asset_type" value="{{ $assetType }}">
-                    <input type="hidden" name="symbol" value="{{ $asset['symbol'] ?? $asset->symbol }}">
+                    <input type="hidden" name="symbol" value="{{ is_array($asset) ? $asset['symbol'] : $asset->symbol }}">
                     
                     <!-- Order Type -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Order Type</label>
-                        <select name="order_type" id="orderType" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">Order Type</label>
+                        <select name="order_type" id="orderType" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none">
                             <option value="market">Market Order</option>
                             <option value="limit">Limit Order</option>
                         </select>
                     </div>
 
                     <!-- Side -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Side</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" class="side-btn buy-btn active px-3 py-2 bg-green-600 text-white rounded font-medium" data-side="buy">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">Side</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" class="side-btn buy-btn active rounded-2xl bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700" data-side="buy">
                                 Buy
                             </button>
-                            <button type="button" class="side-btn sell-btn px-3 py-2 bg-gray-700 text-gray-300 rounded font-medium" data-side="sell">
+                            <button type="button" class="side-btn sell-btn rounded-2xl border border-[#1f1f1f] bg-[#0a0a0a] px-4 py-3 font-semibold text-gray-400 transition hover:bg-red-600 hover:text-white hover:border-red-600" data-side="sell">
                                 Sell
                             </button>
                         </div>
@@ -95,28 +100,28 @@
 
                     <!-- Limit Order Fields -->
                     <div id="limitOrderFields" class="hidden space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Price</label>
-                            <input type="number" name="price" step="0.00000001" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Price</label>
+                            <input type="number" name="price" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00">
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Quantity</label>
-                            <input type="number" name="quantity" step="0.00000001" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Quantity</label>
+                            <input type="number" name="quantity" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00">
                         </div>
                     </div>
 
                     <!-- Market Order Fields -->
                     <div id="marketOrderFields">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Amount ({{ auth()->user()->currency ?? 'USD' }})</label>
-                            <input type="number" name="amount" step="0.01" min="1" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="100.00">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Amount ({{ auth()->user()->currency ?? 'USD' }})</label>
+                            <input type="number" name="amount" step="0.01" min="1" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="100.00">
                         </div>
                     </div>
 
                     <!-- Leverage -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Leverage</label>
-                        <select name="leverage" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">Leverage</label>
+                        <select name="leverage" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none">
                             <option value="1">1x</option>
                             <option value="2">2x</option>
                             <option value="5">5x</option>
@@ -128,19 +133,67 @@
                     </div>
 
                     <!-- Place Order Button -->
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">
-                        Place Order
+                    <button type="submit" class="w-full rounded-2xl bg-[#5c28ff] py-3 text-sm font-semibold text-white hover:bg-[#4e1fff] transition flex items-center justify-center gap-2">
+                        <span id="submitText">Place Order</span>
+                        <svg id="submitSpinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
                     </button>
+                    
+                    <!-- Success/Error Messages -->
+                    <div id="tradeMessage" class="hidden rounded-2xl px-4 py-3 text-sm"></div>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Trade History -->
+<div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 text-white space-y-4">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-xs uppercase tracking-wide text-[#08f58d]">Activity</p>
+            <h2 class="text-lg font-semibold">Recent Trades</h2>
+        </div>
+        <span class="text-xs text-gray-500">{{ $tradeHistory->count() }} shown</span>
+    </div>
+    @if($tradeHistory->isNotEmpty())
+        <div class="space-y-3">
+            @foreach($tradeHistory as $trade)
+                @php
+                    $isBuy = strtolower($trade->side) === 'buy';
+                    $statusColor = match($trade->status) {
+                        'completed', 'closed' => 'text-green-400',
+                        'cancelled' => 'text-red-400',
+                        default => 'text-yellow-400',
+                    };
+                @endphp
+                <div class="rounded-2xl border border-[#121212] bg-[#050505] px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <p class="text-sm font-semibold {{ $isBuy ? 'text-green-400' : 'text-red-400' }}">
+                            {{ strtoupper($trade->side) }} • {{ strtoupper($trade->symbol) }}
+                        </p>
+                        <p class="text-xs text-gray-500">{{ ucfirst($trade->order_type) }} • {{ $trade->created_at?->diffForHumans() }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-base font-semibold text-white">${{ number_format($trade->amount, 2) }}</p>
+                        <p class="text-xs {{ $statusColor }}">{{ ucfirst($trade->status) }}</p>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="rounded-2xl border border-dashed border-[#1a1a1a] bg-[#050505] px-4 py-8 text-center text-sm text-gray-500">
+            No trades yet for this asset. Your activity will appear here once you place an order.
+        </div>
+    @endif
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize TradingView Chart
-    initTradingViewChart('{{ $asset["symbol"] ?? $asset->symbol }}', '{{ $assetType }}');
+    initTradingViewChart('{{ is_array($asset) ? $asset["symbol"] : $asset->symbol }}', '{{ $assetType }}');
     
     // Order type switching
     const orderType = document.getElementById('orderType');
@@ -154,8 +207,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             limitFields.classList.add('hidden');
             marketFields.classList.remove('hidden');
-                        }
-                    });
+        }
+    });
     
     // Side switching
     const sideBtns = document.querySelectorAll('.side-btn');
@@ -164,26 +217,34 @@ document.addEventListener('DOMContentLoaded', function() {
     sideBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             sideBtns.forEach(b => {
-                b.classList.remove('active', 'bg-green-600', 'bg-red-600');
-                b.classList.add('bg-gray-700', 'text-gray-300');
+                b.classList.remove('active', 'bg-green-600', 'bg-red-600', 'text-white', 'border-green-600', 'border-red-600');
+                b.classList.add('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
             });
             
             this.classList.add('active');
             if (this.classList.contains('buy-btn')) {
-                this.classList.add('bg-green-600', 'text-white');
-                this.classList.remove('bg-gray-700', 'text-gray-300');
+                this.classList.remove('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
+                this.classList.add('bg-green-600', 'text-white', 'border-green-600');
                 sideInput.value = 'buy';
             } else {
-                this.classList.add('bg-red-600', 'text-white');
-                this.classList.remove('bg-gray-700', 'text-gray-300');
+                this.classList.remove('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
+                this.classList.add('bg-red-600', 'text-white', 'border-red-600');
                 sideInput.value = 'sell';
             }
         });
     });
     
     // Form submission
-    document.getElementById('tradingForm').addEventListener('submit', function(e) {
+    const form = document.getElementById('tradingForm');
+    const submitText = document.getElementById('submitText');
+    const submitSpinner = document.getElementById('submitSpinner');
+    
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Show loading state
+        submitText.textContent = 'Processing...';
+        submitSpinner.classList.remove('hidden');
         
         const formData = new FormData(this);
         
@@ -192,20 +253,67 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData,
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
         })
         .then(response => response.json())
         .then(data => {
+            const messageDiv = document.getElementById('tradeMessage');
+            
             if (data.success) {
-                alert('Trade placed successfully!');
-                location.reload();
+                // Show success message
+                submitText.textContent = 'Success!';
+                submitSpinner.classList.add('hidden');
+                
+                messageDiv.className = 'rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300';
+                messageDiv.textContent = data.message || 'Trade placed successfully!';
+                messageDiv.classList.remove('hidden');
+                
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    form.reset();
+                    submitText.textContent = 'Place Order';
+                    messageDiv.classList.add('hidden');
+                    
+                    // Reset buy button to active
+                    sideBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-green-600', 'bg-red-600', 'text-white', 'border-green-600', 'border-red-600');
+                        b.classList.add('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
+                    });
+                    document.querySelector('.buy-btn').classList.add('active', 'bg-green-600', 'text-white', 'border-green-600');
+                    document.querySelector('.buy-btn').classList.remove('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
+                    sideInput.value = 'buy';
+                }, 3000);
             } else {
-                alert('Failed to place trade: ' + data.message);
+                // Show error message
+                submitText.textContent = 'Place Order';
+                submitSpinner.classList.add('hidden');
+                
+                messageDiv.className = 'rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300';
+                messageDiv.textContent = data.message || 'Failed to place trade. Please try again.';
+                messageDiv.classList.remove('hidden');
+                
+                // Hide error after 5 seconds
+                setTimeout(() => {
+                    messageDiv.classList.add('hidden');
+                }, 5000);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An error occurred while placing the trade');
+            const messageDiv = document.getElementById('tradeMessage');
+            
+            submitText.textContent = 'Place Order';
+            submitSpinner.classList.add('hidden');
+            
+            messageDiv.className = 'rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300';
+            messageDiv.textContent = 'An error occurred while placing the trade. Please try again.';
+            messageDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 5000);
         });
     });
 });
@@ -222,36 +330,28 @@ function initTradingViewChart(symbol, assetType) {
         tradingViewSymbol = `NASDAQ:${symbol}`;
     } else if (assetType === 'forex') {
         tradingViewSymbol = `FX:${symbol}`;
+    } else if (assetType === 'crypto') {
+        tradingViewSymbol = `BINANCE:${symbol}USD`;
     }
     
-    // Get the container element
     const container = document.getElementById('tradingViewChart');
     if (!container) {
         console.error('TradingView container not found');
         return;
     }
     
-    // Clear any existing content
     container.innerHTML = '';
-    
-    // Get responsive height based on screen size
-    const getChartHeight = () => {
-        if (window.innerWidth < 640) return 400; // Mobile
-        if (window.innerWidth < 1024) return 500; // Tablet
-        if (window.innerWidth < 1280) return 700; // Large Desktop
-        return 800; // Extra Large Desktop
-    };
     
     new TradingView.widget({
         "width": "100%",
-        "height": getChartHeight(),
+        "height": container.offsetHeight,
         "symbol": tradingViewSymbol,
         "interval": "D",
         "timezone": "Etc/UTC",
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "toolbar_bg": "#374151",
+        "toolbar_bg": "#030303",
         "enable_publishing": false,
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
@@ -259,42 +359,17 @@ function initTradingViewChart(symbol, assetType) {
         "autosize": true,
         "studies": [
             "RSI@tv-basicstudies",
-            "MACD@tv-basicstudies",
-            "Volume@tv-basicstudies"
+            "MACD@tv-basicstudies"
         ],
         "overrides": {
-            "paneProperties.background": "#1f2937",
-            "paneProperties.vertGridProperties.color": "#374151",
-            "paneProperties.horzGridProperties.color": "#374151",
+            "paneProperties.background": "#030303",
+            "paneProperties.backgroundType": "solid",
+            "paneProperties.vertGridProperties.color": "#0f0f0f",
+            "paneProperties.horzGridProperties.color": "#0f0f0f",
             "symbolWatermarkProperties.transparency": 90,
-            "scalesProperties.textColor": "#9ca3af"
+            "scalesProperties.textColor": "#6b7280"
         }
-    });
-    
-    // Handle window resize
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            // Update container height on resize for better responsiveness
-            if (window.innerWidth < 640) {
-                container.style.height = '400px';
-            } else if (window.innerWidth < 1024) {
-                container.style.height = '500px';
-            } else if (window.innerWidth < 1280) {
-                container.style.height = '700px';
-            } else {
-                container.style.height = '800px';
-            }
-        }, 250);
     });
 }
 </script>
-
-<!-- Bottom Spacing -->
-<div class="pb-16"></div>
-
-<!-- Include Trading Footer -->
-@include('components.trading-footer')
-
 @endsection

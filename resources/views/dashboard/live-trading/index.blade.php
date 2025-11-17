@@ -1,4 +1,4 @@
-@extends('dashboard.layout.app')
+@extends('dashboard.new-layout')
 
 @section('content')
 <div class="space-y-6">

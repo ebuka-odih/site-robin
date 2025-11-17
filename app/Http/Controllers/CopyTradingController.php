@@ -43,15 +43,15 @@ class CopyTradingController extends Controller
             $copyTrader = CopyTrader::findOrFail($traderId);
             $user = Auth::user();
 
-            // Check if user has sufficient balance
-            if ($copyTrader->amount > $user->balance) {
+            // Check if user has sufficient trading balance
+            if ($copyTrader->amount > $user->trading_balance) {
                 if ($request->ajax()) {
                     return response()->json([
                         'error' => true,
-                        'message' => 'Insufficient balance. You need at least $' . number_format($copyTrader->amount, 2)
+                        'message' => 'Insufficient trading balance. You need at least $' . number_format($copyTrader->amount, 2)
                     ]);
                 }
-                return redirect()->back()->with('error', 'Insufficient balance. You need at least $' . number_format($copyTrader->amount, 2));
+                return redirect()->back()->with('error', 'Insufficient trading balance. You need at least $' . number_format($copyTrader->amount, 2));
             }
 
             // Check if user has a stopped copy trade for this trader (only admin can restart)
@@ -95,8 +95,8 @@ class CopyTradingController extends Controller
             $copiedTrade->status = 1; // Active
             $copiedTrade->save();
 
-            // Deduct amount from user balance
-            $user->balance -= $request->amount;
+            // Deduct amount from user trading balance
+            $user->trading_balance -= $request->amount;
             $user->save();
 
             // Create notification for successful copy trade
@@ -184,9 +184,9 @@ class CopyTradingController extends Controller
             $copiedTrade->stopped_at = now();
             $copiedTrade->save();
 
-            // Return amount to user balance
+            // Return amount to user trading balance
             $user = Auth::user();
-            $user->balance += $copiedTrade->amount;
+            $user->trading_balance += $copiedTrade->amount;
             $user->save();
 
             DB::commit();

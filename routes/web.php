@@ -410,6 +410,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     // Live Trading Routes
     Route::get("live-trading", [LiveTradingController::class, "index"])->name("liveTrading.index");
     Route::get("live-trading/trade", [LiveTradingController::class, "trade"])->name("liveTrading.trade");
+    Route::get("advanced-trading/trade", [LiveTradingController::class, "advancedTrade"])->name("advancedTrading.trade");
     Route::post("live-trading", [LiveTradingController::class, "store"])->name("liveTrading.store");
     Route::post("live-trading/{liveTrade}/cancel", [LiveTradingController::class, "cancel"])->name("liveTrading.cancel");
     Route::get("live-trading/price", [LiveTradingController::class, "getPrice"])->name("liveTrading.price");

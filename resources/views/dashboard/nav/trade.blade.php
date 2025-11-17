@@ -24,6 +24,7 @@
             <div class="flex items-center gap-2 rounded-full border border-[#1a1a1a] bg-[#050505] p-1">
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold bg-[#00ff5f] text-black" data-target="#stock-list">Stocks</button>
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#crypto-list">Crypto</button>
+                <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#history-list">History</button>
             </div>
             <a href="{{ route('user.nav.stocks') }}" class="text-xs text-gray-400 hover:text-white">See market</a>
         </div>
@@ -61,6 +62,32 @@
                 <p class="text-xs text-gray-500">No crypto data available.</p>
             @endforelse
         </div>
+        <div id="history-list" class="grid gap-3 md:grid-cols-2 hidden">
+            @forelse($tradeHistory as $trade)
+                @php
+                    $isBuy = strtolower($trade->side) === 'buy';
+                    $statusColor = match($trade->status) {
+                        'completed', 'closed' => 'text-green-400',
+                        'cancelled' => 'text-red-400',
+                        default => 'text-yellow-400',
+                    };
+                @endphp
+                <div class="rounded-3xl border border-[#151515] bg-[#040404] p-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold {{ $isBuy ? 'text-green-400' : 'text-red-400' }}">
+                            {{ strtoupper($trade->side) }} • {{ strtoupper($trade->symbol) }}
+                        </p>
+                        <p class="text-xs text-gray-500">{{ ucfirst($trade->order_type) }} • {{ $trade->created_at?->diffForHumans() }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-white text-lg font-semibold">${{ number_format($trade->amount, 2) }}</p>
+                        <p class="text-xs {{ $statusColor }}">{{ ucfirst($trade->status) }}</p>
+                    </div>
+                </div>
+            @empty
+                <p class="text-xs text-gray-500">No trading activity yet.</p>
+            @endforelse
+        </div>
     </div>
 </div>
 @endsection
@@ -69,7 +96,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const buttons = document.querySelectorAll('.trade-tab');
-        const lists = ['#stock-list', '#crypto-list'].map(id => document.querySelector(id));
+        const lists = ['#stock-list', '#crypto-list', '#history-list'].map(id => document.querySelector(id));
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
                 buttons.forEach(b => b.classList.remove('bg-[#00ff5f]', 'text-black'));

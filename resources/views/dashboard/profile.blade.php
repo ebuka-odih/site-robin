@@ -1,348 +1,284 @@
-@extends('dashboard.layout.app')
+@extends('dashboard.new-layout')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-white">Profile Settings</h1>
-            <p class="text-gray-400 mt-1">Manage your account information and preferences</p>
-        </div>
+<div class="space-y-10 text-white">
+    <div class="flex flex-col gap-1">
+        <p class="text-[11px] uppercase tracking-[0.35em] text-[#08f58d]">Profile</p>
+        <h1 class="text-2xl font-semibold">Account preferences</h1>
+        <p class="text-sm text-gray-400">Keep your personal information, security controls, and verification data aligned with the new dashboard aesthetic.</p>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Profile Overview -->
-        <div class="lg:col-span-1">
-            <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                <div class="text-center">
-                    <div class="relative inline-block">
-                        <img class="w-24 h-24 rounded-full mx-auto mb-4" 
-                             src="{{ $user->avatar_url }}" 
-                             alt="Profile Photo">
-                        <div class="absolute bottom-4 right-0">
-                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
+    <div class="grid gap-6 lg:grid-cols-[320px,1fr]">
+        <div class="space-y-6">
+            <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 text-center">
+                <div class="relative mx-auto h-28 w-28">
+                    <img src="{{ $user->avatar_url }}" alt="Profile Photo" class="h-28 w-28 rounded-full border border-[#1fff9c]/30 object-cover">
+                    <button type="button" id="changeAvatarButton" class="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-[#00ff5f] text-xs font-semibold text-black shadow-[0_0_30px_rgba(0,255,149,0.45)]">
+                        Edit
+                    </button>
+                </div>
+                <div class="mt-4 space-y-1">
+                    <h2 class="text-xl font-semibold">{{ $user->name }}</h2>
+                    <p class="text-sm text-gray-400">{{ $user->email }}</p>
+                </div>
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <span class="rounded-full border border-[#1fff9c]/50 px-3 py-1 text-xs font-semibold text-[#1fff9c]">
+                        {{ $user->package->name ?? 'Free' }} member
+                    </span>
+                    <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-gray-400">
+                        ID: #{{ $user->id }}
+                    </span>
+                </div>
+                <div class="mt-6 grid gap-3 text-left text-sm text-gray-400">
+                    <div class="flex items-center justify-between rounded-2xl border border-[#101010] bg-[#060606] px-4 py-3">
+                        <span>Member since</span>
+                        <span class="text-white font-medium">{{ $user->created_at->format('M Y') }}</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-white">{{ $user->name }}</h3>
-                    <p class="text-gray-400 text-sm">{{ $user->email }}</p>
-                    <div class="mt-4">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {{ $user->package->name ?? 'Free' }} Member
-                        </span>
+                    <div class="flex items-center justify-between rounded-2xl border border-[#101010] bg-[#060606] px-4 py-3">
+                        <span>Last login</span>
+                        <span class="text-white font-medium">{{ $user->last_login_at ? $user->last_login_at->format('M d, Y') : 'N/A' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-2xl border border-[#101010] bg-[#060606] px-4 py-3">
+                        <span>Status</span>
+                        <span class="text-[#00ff5f] font-medium">Active</span>
                     </div>
                 </div>
-                
-                <div class="mt-6 pt-6 border-t border-gray-700">
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Member Since</span>
-                            <span class="text-white">{{ $user->created_at->format('M Y') }}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Last Login</span>
-                            <span class="text-white">{{ $user->last_login_at ? $user->last_login_at->format('M d, Y') : 'N/A' }}</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-400">Status</span>
-                            <span class="text-green-400 font-medium">Active</span>
-                        </div>
+            </div>
+
+            <div class="rounded-[32px] border border-[#101010] bg-[#050505] p-5 space-y-4">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.4em] text-gray-500">Contact methods</p>
+                    <p class="text-sm text-gray-400">These channels help us verify activity and keep you updated.</p>
+                </div>
+                <div class="space-y-3 text-sm text-gray-400">
+                    <div class="flex items-center justify-between rounded-2xl border border-[#111] bg-[#070707] px-4 py-3">
+                        <span>Phone</span>
+                        <span class="text-white font-medium">{{ $user->phone ?? 'Not provided' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-2xl border border-[#111] bg-[#070707] px-4 py-3">
+                        <span>Telegram</span>
+                        <span class="text-white font-medium">{{ $user->telegram ?? 'Not connected' }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Settings Cards -->
-        <div class="lg:col-span-2">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Personal Information -->
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Personal Information</h3>
-                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                            </svg>
-                        </div>
+        <div class="space-y-6">
+            <div class="rounded-[32px] border border-[#101010] bg-[#030303] p-6">
+                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.35em] text-gray-500">Identity</p>
+                        <h3 class="text-xl font-semibold">Personal information</h3>
                     </div>
-                    
-                    @if(session()->has('success'))
-                        <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                            {{ session()->get('success') }}
-                        </div>
-                    @endif
-                    
-                    @if ($errors->any())
-                        <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                            <ul class="list-disc list-inside">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form action="{{ route('user.updateProfile', $user->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
-                                <input type="text" name="name" value="{{ $user->name }}" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="Enter your full name">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                                <input type="email" value="{{ $user->email }}" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-400 focus:outline-none"
-                                       readonly>
-                                <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
-                                <input type="text" name="phone" value="{{ $user->phone }}" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="Enter phone number">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Telegram Username</label>
-                                <input type="text" name="telegram" value="{{ $user->telegram }}" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="@username">
-                            </div>
-                            
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition-colors">
-                                Update Profile
-                            </button>
-                        </div>
-                    </form>
+                    <div class="rounded-full border border-white/10 px-3 py-1 text-xs text-gray-400">Directly stored on secure nodes</div>
                 </div>
 
-                <!-- Security Settings -->
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Security</h3>
-                        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
+                @if(session()->has('success'))
+                    <div class="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if ($errors->any())
+                    <div class="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                        <ul class="list-disc space-y-1 pl-4">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('user.updateProfile', $user->id) }}" method="POST" enctype="multipart/form-data" class="mt-6 space-y-4">
+                    @csrf
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Full name</label>
+                            <input type="text" name="name" value="{{ old('name', $user->name) }}" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white placeholder:text-gray-600 focus:border-[#1fff9c] focus:outline-none" placeholder="Enter your full name">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Email</label>
+                            <input type="email" value="{{ $user->email }}" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-gray-400" readonly>
+                            <p class="text-xs text-gray-500">Email changes require support</p>
                         </div>
                     </div>
-                    
-                    @if(session()->has('status'))
-                        <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                            {{ session()->get('status') }}
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Phone number</label>
+                            <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white placeholder:text-gray-600 focus:border-[#1fff9c] focus:outline-none" placeholder="Enter phone number">
                         </div>
-                    @endif
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Telegram username</label>
+                            <input type="text" name="telegram" value="{{ old('telegram', $user->telegram) }}" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white placeholder:text-gray-600 focus:border-[#1fff9c] focus:outline-none" placeholder="@username">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full rounded-full bg-[#00ff5f] px-6 py-3 text-sm font-semibold text-black shadow-[0_0_35px_rgba(0,255,149,0.35)] transition hover:bg-[#0aff80]">
+                        Save changes
+                    </button>
+                </form>
+            </div>
 
-                    <form action="{{ route('user.updatePassword') }}" method="POST">
-                        @csrf
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
-                                <input type="password" name="current_password" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="Enter current password">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
-                                <input type="password" name="new_password" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="Enter new password">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
-                                <input type="password" name="new_password_confirmation" 
-                                       class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                                       placeholder="Confirm new password">
-                            </div>
-                            
-                            <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium transition-colors">
-                                Change Password
-                            </button>
-                        </div>
-                    </form>
+            <div class="rounded-[32px] border border-[#101010] bg-[#030303] p-6">
+                <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.35em] text-gray-500">Security</p>
+                        <h3 class="text-xl font-semibold">Password & protection</h3>
+                    </div>
+                    <div class="rounded-full border border-white/10 px-3 py-1 text-xs text-gray-400">2FA coming soon</div>
                 </div>
 
-                <!-- KYC Verification -->
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">KYC Verification</h3>
-                        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
+                @if(session()->has('status'))
+                    <div class="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                        {{ session('status') }}
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-white font-medium">Identity Verification</span>
-                            </div>
-                            <span class="text-green-400 text-sm font-medium">Verified</span>
-                        </div>
-                        
-                        <a href="{{ route('user.kyc.index') }}" class="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-white font-medium">View KYC Details</span>
-                            </div>
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </a>
-                    </div>
-                </div>
+                @endif
 
-                <!-- Account Actions -->
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Account Actions</h3>
-                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                        </div>
+                <form action="{{ route('user.updatePassword') }}" method="POST" class="mt-6 space-y-4">
+                    @csrf
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">Current password</label>
+                        <input type="password" name="current_password" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="Enter current password">
                     </div>
-                    
-                    <div class="space-y-3">
-                        <!-- <a href="{{ route('user.transactions.index') }}?tab=transfers" class="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-white font-medium">Transfer Funds</span>
-                            </div>
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </a> -->
-                        
-                        <button class="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-white font-medium">Referrals</span>
-                            </div>
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </button>
-                        
-                        <a href="{{ route('user.transactions.index') }}" class="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h6v-2H4v2zM4 11h6V9H4v2zM4 7h6V5H4v2zM10 7h10V5H10v2zM10 11h10V9H10v2zM10 15h10v-2H10v2zM10 19h10v-2H10v2z"></path>
-                                    </svg>
-                                </div>
-                                <span class="text-white font-medium">Transaction History</span>
-                            </div>
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </a>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">New password</label>
+                        <input type="password" name="new_password" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="Enter new password">
                     </div>
-                </div>
+                    <div class="space-y-2">
+                        <label class="text-xs uppercase tracking-wide text-gray-400">Confirm new password</label>
+                        <input type="password" name="new_password_confirmation" class="w-full rounded-2xl border border-[#191919] bg-[#050505] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" class="w-full rounded-full border border-[#1fff9c]/40 px-6 py-3 text-sm font-semibold text-[#1fff9c] transition hover:border-[#1fff9c]">
+                        Update password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                <!-- Notifications -->
-                <div class="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-white">Notifications</h3>
-                        <div class="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h6v-2H4v2zM4 11h6V9H4v2zM4 7h6V5H4v2zM10 7h10V5H10v2zM10 11h10V9H10v2zM10 15h10v-2H10v2zM10 19h10v-2H10v2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-white font-medium">Email Notifications</p>
-                                <p class="text-gray-400 text-sm">Receive updates via email</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                        
-
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-white font-medium">Push Notifications</p>
-                                <p class="text-gray-400 text-sm">Receive browser notifications</p>
-                            </div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                            </label>
-                        </div>
-                    </div>
+    <div class="grid gap-6 lg:grid-cols-3">
+        <div class="rounded-[32px] border border-[#101010] bg-[#030303] p-6 lg:col-span-2">
+            <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <p class="text-[11px] uppercase tracking-[0.35em] text-gray-500">KYC</p>
+                    <h3 class="text-xl font-semibold">Verification overview</h3>
                 </div>
+                <span class="rounded-full border border-[#1fff9c]/40 px-3 py-1 text-xs font-semibold text-[#1fff9c]">Identity verified</span>
+            </div>
+            <p class="mt-2 text-sm text-gray-400">Your documents keep withdrawals secure. Update information whenever your residency or identity changes.</p>
+            <div class="mt-6 grid gap-4 md:grid-cols-2">
+                <div class="rounded-3xl border border-[#101010] bg-[#050505] p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Identity</p>
+                    <p class="text-base font-semibold text-white">Government ID</p>
+                    <p class="text-sm text-[#00ff5f]">Approved</p>
+                </div>
+                <div class="rounded-3xl border border-[#101010] bg-[#050505] p-4">
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Address</p>
+                    <p class="text-base font-semibold text-white">Proof of residence</p>
+                    <p class="text-sm text-[#00ff5f]">Approved</p>
+                </div>
+            </div>
+            <a href="{{ route('user.kyc.index') }}" class="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/40">
+                View submitted documents
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-4 w-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="rounded-[32px] border border-[#101010] bg-[#030303] p-6">
+            <p class="text-[11px] uppercase tracking-[0.35em] text-gray-500">Account actions</p>
+            <h3 class="text-xl font-semibold mt-1">Move quickly</h3>
+            <p class="text-sm text-gray-400">Shortcuts to the flows you use most.</p>
+            <div class="mt-6 space-y-4">
+                <button type="button" class="flex w-full items-center justify-between rounded-3xl border border-[#101010] bg-[#050505] px-4 py-3 text-left text-sm transition hover:border-[#1fff9c]/30">
+                    <span class="text-white font-medium">Referrals</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-gray-500">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <a href="{{ route('user.transactions.index') }}" class="flex w-full items-center justify-between rounded-3xl border border-[#101010] bg-[#050505] px-4 py-3 text-sm transition hover:border-[#1fff9c]/30">
+                    <span class="text-white font-medium">Transaction history</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5 text-gray-500">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-[32px] border border-[#101010] bg-[#030303] p-6">
+        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.35em] text-gray-500">Notifications</p>
+                <h3 class="text-xl font-semibold">Stay in the loop</h3>
+            </div>
+            <p class="text-xs text-gray-500">Customize how we reach you.</p>
+        </div>
+        <div class="mt-6 space-y-5">
+            <div class="flex items-center justify-between rounded-3xl border border-[#101010] bg-[#040404] px-4 py-3">
+                <div>
+                    <p class="text-sm font-semibold text-white">Email notifications</p>
+                    <p class="text-xs text-gray-500">Approvals, transfers, and account changes.</p>
+                </div>
+                <label class="relative inline-flex cursor-pointer items-center">
+                    <input type="checkbox" class="peer sr-only" checked>
+                    <span class="h-6 w-11 rounded-full bg-gray-600 transition peer-checked:bg-[#1fff9c] after:absolute after:m-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5"></span>
+                </label>
+            </div>
+            <div class="flex items-center justify-between rounded-3xl border border-[#101010] bg-[#040404] px-4 py-3">
+                <div>
+                    <p class="text-sm font-semibold text-white">Push notifications</p>
+                    <p class="text-xs text-gray-500">Trades, wallets, and alerts inside the app.</p>
+                </div>
+                <label class="relative inline-flex cursor-pointer items-center">
+                    <input type="checkbox" class="peer sr-only">
+                    <span class="h-6 w-11 rounded-full bg-gray-600 transition peer-checked:bg-[#1fff9c] after:absolute after:m-1 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5"></span>
+                </label>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Handle profile photo upload
-document.querySelector('.relative.inline-block').addEventListener('click', function() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Create a form and submit it
+document.addEventListener('DOMContentLoaded', () => {
+    const trigger = document.getElementById('changeAvatarButton');
+    if (!trigger) return;
+
+    trigger.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+
+        input.onchange = (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '{{ route("user.updateProfile", $user->id) }}';
             form.enctype = 'multipart/form-data';
-            
+
             const csrfToken = document.createElement('input');
             csrfToken.type = 'hidden';
             csrfToken.name = '_token';
             csrfToken.value = '{{ csrf_token() }}';
-            
+
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.name = 'avatar';
-            fileInput.files = e.target.files;
-            
+
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+
             form.appendChild(csrfToken);
             form.appendChild(fileInput);
             document.body.appendChild(form);
             form.submit();
-        }
-    };
-    input.click();
+        };
+
+        input.click();
+    });
 });
 </script>
 @endsection

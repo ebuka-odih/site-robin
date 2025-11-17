@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Trade;
+use App\Models\LiveTrade;
 use App\Models\TradePair;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -51,14 +52,25 @@ class TradeController extends Controller
     }
 
     public function tradeHistory(){
-        $openTrades = Trade::where('status', 'open')->latest()->get();
-        $closedTrades = Trade::where('status', 'closed')->orderBy('updated_at', 'desc')->get();
+        // Get regular trades
+        $regularOpenTrades = Trade::where('status', 'open')->latest()->get();
+        $regularClosedTrades = Trade::where('status', 'closed')->orderBy('updated_at', 'desc')->get();
+        
+        // Get live trades (pending and filled are considered "open")
+        $liveOpenTrades = LiveTrade::whereIn('status', ['pending', 'filled'])->latest()->get();
+        $liveClosedTrades = LiveTrade::where('status', 'closed')->orderBy('updated_at', 'desc')->get();
+        
+        // Merge both types of trades
+        $openTrades = $regularOpenTrades->merge($liveOpenTrades)->sortByDesc('created_at');
+        $closedTrades = $regularClosedTrades->merge($liveClosedTrades)->sortByDesc('updated_at');
         
         \Log::info('Trade History Data:', [
-            'open_trades_count' => $openTrades->count(),
-            'closed_trades_count' => $closedTrades->count(),
-            'open_trades' => $openTrades->pluck('id', 'status'),
-            'closed_trades' => $closedTrades->pluck('id', 'status')
+            'regular_open_trades' => $regularOpenTrades->count(),
+            'live_open_trades' => $liveOpenTrades->count(),
+            'regular_closed_trades' => $regularClosedTrades->count(),
+            'live_closed_trades' => $liveClosedTrades->count(),
+            'total_open' => $openTrades->count(),
+            'total_closed' => $closedTrades->count()
         ]);
         
         return view('admin.trade.history', compact('openTrades', 'closedTrades'));
@@ -69,10 +81,18 @@ class TradeController extends Controller
     public function editPnl(Request $request, $id)
     {
         $request->validate([
-            'profit_loss' => 'required|numeric'
+            'profit_loss' => 'required|numeric',
+            'trade_type' => 'sometimes|in:trade,live_trade'
         ]);
 
-        $trade = Trade::findOrFail($id);
+        $tradeType = $request->input('trade_type', 'trade');
+        
+        if ($tradeType === 'live_trade') {
+            $trade = LiveTrade::findOrFail($id);
+        } else {
+            $trade = Trade::findOrFail($id);
+        }
+        
         $trade->profit_loss = $request->profit_loss;
         $trade->save();
 
@@ -81,32 +101,38 @@ class TradeController extends Controller
 
     public function closeTrade(Request $request, $id)
     {
-        $trade = Trade::findOrFail($id);
+        $tradeType = $request->input('trade_type', 'trade');
         
-        if ($request->action == 'profit') {
-            $trade->profit_loss = $request->get('profit_loss');
-            $trade->status = 'closed';
-            $trade->save();
-            
-            $user = User::find($trade->user_id);
-            $user->balance += $trade->amount + $trade->profit_loss;
-            $user->save();
+        if ($tradeType === 'live_trade') {
+            $trade = LiveTrade::findOrFail($id);
         } else {
-            $trade->profit_loss = $request->get('profit_loss');
-            $trade->status = 'closed';
-            $trade->save();
-            
-            $user = User::find($trade->user_id);
-            $user->balance += $trade->amount + $trade->profit_loss;
-            $user->save();
+            $trade = Trade::findOrFail($id);
         }
         
-        return redirect()->route('admin.closedTrades')->with('success', 'Trade closed successfully!');
+        $profitLoss = $request->get('profit_loss', 0);
+        $trade->profit_loss = $profitLoss;
+        $trade->status = 'closed';
+        $trade->save();
+        
+        // Update user balance and profit
+        $user = User::find($trade->user_id);
+        $user->balance += $trade->amount + $profitLoss;
+        $user->profit = ($user->profit ?? 0) + $profitLoss;
+        $user->save();
+        
+        return redirect()->route('admin.trade-history')->with('success', 'Trade closed successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $trade = Trade::findOrFail($id);
+        $tradeType = $request->input('trade_type', 'trade');
+        
+        if ($tradeType === 'live_trade') {
+            $trade = LiveTrade::findOrFail($id);
+        } else {
+            $trade = Trade::findOrFail($id);
+        }
+        
         $trade->delete();
         return back()->with('success', 'Trade deleted successfully!');
     }

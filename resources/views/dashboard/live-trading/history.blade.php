@@ -1,4 +1,4 @@
-@extends("dashboard.layout.app")
+@extends("dashboard.new-layout")
 
 @section("title", "Trading History")
 

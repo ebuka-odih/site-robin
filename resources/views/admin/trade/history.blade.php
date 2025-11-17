@@ -83,22 +83,37 @@
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($openTrades as $trade)
-                        <tr data-trade-id="{{ $trade->id }}">
+                        @php
+                            $isLiveTrade = $trade instanceof \App\Models\LiveTrade;
+                            $tradeType = $isLiveTrade ? 'live_trade' : 'trade';
+                        @endphp
+                        <tr data-trade-id="{{ $trade->id }}" data-trade-type="{{ $tradeType }}">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                 {{ $trade->created_at->format('M d, Y H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->user->fullname() ?? 'N/A' }}
+                                {{ $trade->user->fullname() ?? $trade->user->name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->trade_pair->pair ?? 'N/A' }}
+                                @if($isLiveTrade)
+                                    {{ strtoupper($trade->symbol) }}
+                                @else
+                                    {{ $trade->trade_pair->pair ?? 'N/A' }}
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->trade_pair->type ?? 'N/A' }}
+                                @if($isLiveTrade)
+                                    {{ ucfirst($trade->asset_type) }}
+                                @else
+                                    {{ $trade->trade_pair->type ?? 'N/A' }}
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $trade->action_type === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ ucfirst($trade->action_type ?? 'N/A') }}
+                                @php
+                                    $side = $isLiveTrade ? $trade->side : $trade->action_type;
+                                @endphp
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $side === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ ucfirst($side ?? 'N/A') }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -119,19 +134,23 @@
                                 {{ $trade->leverage ?? 'N/A' }}x
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->duration ?? 'N/A' }} min
+                                @if($isLiveTrade)
+                                    N/A
+                                @else
+                                    {{ $trade->duration ?? 'N/A' }} min
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 {!! $trade->adminStatus() !!}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button onclick="openCloseTradeModal('{{ $trade->id }}', '{{ $trade->amount }}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                                <button onclick="openCloseTradeModal('{{ $trade->id }}', '{{ $trade->amount }}', '{{ $tradeType }}')" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
                                     Close
                                 </button>
-                                <button onclick="openEditPnlModal('{{ $trade->id }}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                <button onclick="openEditPnlModal('{{ $trade->id }}', '{{ $tradeType }}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
                                     Edit PnL
                                 </button>
-                                <button onclick="deleteTrade('{{ $trade->id }}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                <button onclick="deleteTrade('{{ $trade->id }}', '{{ $tradeType }}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
                                     Delete
                                 </button>
                             </td>
@@ -182,22 +201,37 @@
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($closedTrades as $trade)
-                        <tr data-trade-id="{{ $trade->id }}">
+                        @php
+                            $isLiveTrade = $trade instanceof \App\Models\LiveTrade;
+                            $tradeType = $isLiveTrade ? 'live_trade' : 'trade';
+                        @endphp
+                        <tr data-trade-id="{{ $trade->id }}" data-trade-type="{{ $tradeType }}">
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                 {{ $trade->created_at->format('M d, Y H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->user->fullname() ?? 'N/A' }}
+                                {{ $trade->user->fullname() ?? $trade->user->name ?? 'N/A' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->trade_pair->pair ?? 'N/A' }}
+                                @if($isLiveTrade)
+                                    {{ strtoupper($trade->symbol) }}
+                                @else
+                                    {{ $trade->trade_pair->pair ?? 'N/A' }}
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                {{ $trade->trade_pair->type ?? 'N/A' }}
+                                @if($isLiveTrade)
+                                    {{ ucfirst($trade->asset_type) }}
+                                @else
+                                    {{ $trade->trade_pair->type ?? 'N/A' }}
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $trade->action_type === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                    {{ ucfirst($trade->action_type ?? 'N/A') }}
+                                @php
+                                    $side = $isLiveTrade ? $trade->side : $trade->action_type;
+                                @endphp
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full {{ $side === 'buy' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ ucfirst($side ?? 'N/A') }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -218,10 +252,10 @@
                                 {{ $trade->updated_at->format('M d, Y H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button onclick="openEditPnlModal('{{ $trade->id }}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
+                                <button onclick="openEditPnlModal('{{ $trade->id }}', '{{ $tradeType }}')" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300">
                                     Edit PnL
                                 </button>
-                                <button onclick="deleteTrade('{{ $trade->id }}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                <button onclick="deleteTrade('{{ $trade->id }}', '{{ $tradeType }}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
                                     Delete
                                 </button>
                             </td>
@@ -259,6 +293,7 @@
         <div class="relative bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-lg mx-auto">
             <form id="closeTradeForm" method="POST">
                 @csrf
+                <input type="hidden" name="trade_type" id="closeTradeType" value="trade">
                 <div class="px-6 py-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Close Trade</h3>
                     <div class="mb-4">
@@ -288,6 +323,7 @@
         <div class="relative bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-lg mx-auto">
             <form id="editPnlForm" method="POST">
                 @csrf
+                <input type="hidden" name="trade_type" id="editPnlTradeType" value="trade">
                 <div class="px-6 py-4">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Edit Profit/Loss</h3>
                     <div class="mb-4">
@@ -322,6 +358,7 @@
             <form id="deleteTradeForm" method="POST">
                 @csrf
                 @method('DELETE')
+                <input type="hidden" name="trade_type" id="deleteTradeType" value="trade">
                 <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 flex justify-end space-x-3">
                     <button type="button" onclick="closeDeleteTradeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 dark:bg-gray-600 dark:text-gray-300 dark:border-gray-500 dark:hover:bg-gray-500">
                         Cancel
@@ -438,8 +475,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Modal functions
-function openCloseTradeModal(tradeId, amount) {
+function openCloseTradeModal(tradeId, amount, tradeType = 'trade') {
     document.getElementById('closeTradeForm').action = `{{ route('admin.trade.close', ':id') }}`.replace(':id', tradeId);
+    document.getElementById('closeTradeType').value = tradeType;
     document.getElementById('closeTradeModal').classList.remove('hidden');
 }
 
@@ -447,10 +485,11 @@ function closeCloseTradeModal() {
     document.getElementById('closeTradeModal').classList.add('hidden');
 }
 
-function openEditPnlModal(tradeId) {
+function openEditPnlModal(tradeId, tradeType = 'trade') {
     const actionUrl = `{{ route('admin.trade.edit-pnl', ':id') }}`.replace(':id', tradeId);
     console.log('Edit PnL URL:', actionUrl);
     document.getElementById('editPnlForm').action = actionUrl;
+    document.getElementById('editPnlTradeType').value = tradeType;
     document.getElementById('editPnlModal').classList.remove('hidden');
 }
 
@@ -458,8 +497,9 @@ function closeEditPnlModal() {
     document.getElementById('editPnlModal').classList.add('hidden');
 }
 
-function deleteTrade(tradeId) {
+function deleteTrade(tradeId, tradeType = 'trade') {
     document.getElementById('deleteTradeForm').action = `{{ route('admin.trade.destroy', ':id') }}`.replace(':id', tradeId);
+    document.getElementById('deleteTradeType').value = tradeType;
     document.getElementById('deleteTradeModal').classList.remove('hidden');
 }
 

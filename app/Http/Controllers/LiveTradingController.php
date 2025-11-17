@@ -83,28 +83,42 @@ class LiveTradingController extends Controller
     {
         $assetType = $request->get('asset_type');
         $symbol = $request->get('symbol');
-        
-        // Get asset details
-        if ($assetType === 'crypto' || $assetType === 'stock') {
-            $asset = Asset::where('symbol', $symbol)->first();
-            if (!$asset) {
-                abort(404, 'Asset not found');
-            }
-        } else {
-            // For forex, create a mock asset
-            $asset = [
-                'symbol' => $symbol,
-                'name' => $symbol,
-                'current_price' => rand(100, 200) / 100,
-                'price_change_24h' => rand(-50, 50) / 10
-            ];
-        }
+        $asset = $this->resolveAsset($assetType, $symbol);
+        $user = Auth::user();
+        $tradeHistory = $user ? LiveTrade::where('user_id', $user->id)
+            ->where('asset_type', $assetType)
+            ->where('symbol', $symbol)
+            ->latest()
+            ->take(5)
+            ->get() : collect();
         
         if ($assetType === 'stock') {
-            return view('dashboard.live-trading.stock', compact('asset', 'assetType'));
+            $relatedStocks = Asset::where('type', 'stock')
+                ->where('symbol', '!=', $symbol)
+                ->inRandomOrder()
+                ->take(4)
+                ->get();
+
+            return view('dashboard.live-trading.stock', compact('asset', 'assetType', 'user', 'tradeHistory', 'relatedStocks'));
         }
 
-        return view('dashboard.live-trading.trade', compact('asset', 'assetType'));
+        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory'));
+    }
+
+    public function advancedTrade(Request $request)
+    {
+        $assetType = $request->get('asset_type');
+        $symbol = $request->get('symbol');
+        $asset = $this->resolveAsset($assetType, $symbol);
+        $user = Auth::user();
+        $tradeHistory = $user ? LiveTrade::where('user_id', $user->id)
+            ->where('asset_type', $assetType)
+            ->where('symbol', $symbol)
+            ->latest()
+            ->take(5)
+            ->get() : collect();
+
+        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory'));
     }
 
     public function store(Request $request)
@@ -121,32 +135,90 @@ class LiveTradingController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors($validator)
+                ->withInput();
         }
 
         $user = Auth::user();
         
         // Check if user has sufficient trading balance
         if ($request->amount > $user->trading_balance) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient trading balance. You need at least $' . number_format($request->amount, 2) . ' in your trading balance.'
-            ], 400);
+            $message = 'Insufficient trading balance. You need at least $' . number_format($request->amount, 2) . ' in your trading balance.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 400);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors(['trade' => $message])
+                ->withInput();
         }
 
         try {
+            $assetData = $this->resolveAsset($request->asset_type, $request->symbol);
+            $marketPrice = is_array($assetData)
+                ? (float) ($assetData['current_price'] ?? 0)
+                : (float) ($assetData->current_price ?? 0);
+
             // For limit orders, validate quantity and price
             if ($request->order_type === 'limit') {
-                if (!$request->quantity || !$request->price) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Price and quantity are required for limit orders.'
-                    ], 400);
+                if (!$request->price) {
+                    $message = 'Price is required for limit orders.';
+
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $message
+                        ], 400);
+                    }
+
+                    return redirect()
+                        ->back()
+                        ->withErrors(['trade' => $message])
+                        ->withInput();
                 }
             }
+
+            $status = $request->order_type === 'market' ? 'completed' : 'pending';
+            $executionPrice = $request->order_type === 'market'
+                ? ($marketPrice > 0 ? $marketPrice : ($request->price ?? 0))
+                : (float) $request->price;
+
+            $quantity = $request->quantity;
+            if ((!$quantity || $quantity <= 0) && $executionPrice > 0) {
+                $quantity = round($request->amount / $executionPrice, 8);
+            }
+
+            if (!$quantity || $quantity <= 0) {
+                $message = 'Unable to determine trade quantity. Please try again.';
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message
+                    ], 400);
+                }
+
+                return redirect()
+                    ->back()
+                    ->withErrors(['trade' => $message])
+                    ->withInput();
+            }
+
+            $orderAmount = $executionPrice > 0 ? $executionPrice * $quantity : $request->amount;
 
             $liveTrade = LiveTrade::create([
                 'user_id' => $user->id,
@@ -154,28 +226,69 @@ class LiveTradingController extends Controller
                 'symbol' => $request->symbol,
                 'order_type' => $request->order_type,
                 'side' => $request->side,
-                'quantity' => $request->quantity,
-                'price' => $request->price,
-                'amount' => $request->amount,
+                'quantity' => $quantity,
+                'price' => $executionPrice,
+                'amount' => $orderAmount,
                 'leverage' => $request->leverage ?? 1.00,
-                'status' => 'pending'
+                'status' => $status,
+                'entry_price' => $executionPrice ?: null,
+                'filled_at' => $status === 'completed' ? now() : null,
+                'profit_loss' => 0
             ]);
 
             // Deduct amount from trading balance
-            $user->decrement('trading_balance', $request->amount);
+            $user->decrement('trading_balance', $orderAmount);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Trade order placed successfully!',
-                'trade' => $liveTrade
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Trade order placed successfully!',
+                    'trade' => $liveTrade
+                ]);
+            }
+
+            return redirect()
+                ->back()
+                ->with('success', 'Trade order placed successfully!');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to place trade: ' . $e->getMessage()
-            ], 500);
+            $message = 'Failed to place trade: ' . $e->getMessage();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors(['trade' => $message])
+                ->withInput();
         }
+    }
+
+    protected function resolveAsset(?string $assetType, ?string $symbol)
+    {
+        if (!$assetType || !$symbol) {
+            abort(404, 'Asset details missing');
+        }
+
+        if (in_array($assetType, ['crypto', 'stock'])) {
+            $asset = Asset::where('symbol', $symbol)->first();
+            if (!$asset) {
+                abort(404, 'Asset not found');
+            }
+
+            return $asset;
+        }
+
+        return [
+            'symbol' => $symbol,
+            'name' => $symbol,
+            'current_price' => rand(100, 200) / 100,
+            'price_change_24h' => rand(-50, 50) / 10
+        ];
     }
 
     public function cancel(LiveTrade $liveTrade)

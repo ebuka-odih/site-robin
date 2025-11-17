@@ -14,7 +14,7 @@
                 <p class="text-gray-400 text-sm">Mirror proven traders, manage your allocations, and monitor history from one clean view.</p>
             </div>
             <div class="rounded-2xl border border-[#1fff9c]/30 bg-[#030303] px-4 py-2 text-xs text-gray-400">
-                Balance available for copy trading: <span class="text-[#1fff9c]">{{ $user->formatAmount($user->balance ?? 0) }}</span>
+                Balance available for copy trading: <span class="text-[#1fff9c]">{{ $user->formatAmount($user->trading_balance ?? 0) }}</span>
             </div>
         </div>
     </div>
