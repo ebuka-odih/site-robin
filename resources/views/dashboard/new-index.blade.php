@@ -80,6 +80,62 @@
                 @endforeach
             </div>
 
+            <!-- Profit and Balance Cards -->
+            <div class="px-6 pb-6 grid gap-4 md:grid-cols-2">
+                @php
+                    $totalProfit = $user->profit ?? 0;
+                    $isProfitPositive = $totalProfit >= 0;
+                    $invested = ($totalInvestedInStocks ?? 0) > 0 ? $totalInvestedInStocks : 1;
+                    $profitPercentage = (($totalProfit / $invested) * 100);
+                    
+                    $totalBalance = $user->balance ?? 0;
+                    $balanceChange = 0; // You can calculate this based on previous balance if tracked
+                    $isBalancePositive = $balanceChange >= 0;
+                @endphp
+                
+                <!-- Profit Card -->
+                <div class="rounded-3xl border border-[#151515] bg-[#030303] p-6">
+                    <p class="text-xs uppercase text-gray-500 mb-2">Total Profit</p>
+                    <p class="text-4xl font-bold text-white mb-3">{{ $user->formatAmount($totalProfit) }}</p>
+                    <div class="flex items-center gap-2">
+                        @if($isProfitPositive)
+                            <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 3l7 7h-4v7h-6v-7H3l7-7z"/>
+                            </svg>
+                        @else
+                            <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 17l-7-7h4V3h6v7h4l-7 7z"/>
+                            </svg>
+                        @endif
+                        <span class="text-lg font-semibold {{ $isProfitPositive ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $user->formatAmount(abs($totalProfit)) }} ({{ number_format(abs($profitPercentage), 2) }}%)
+                        </span>
+                        <span class="text-sm text-gray-400">Today</span>
+                    </div>
+                </div>
+
+                <!-- Balance Card -->
+                <div class="rounded-3xl border border-[#151515] bg-[#030303] p-6">
+                    <p class="text-xs uppercase text-gray-500 mb-2">Available Balance</p>
+                    <p class="text-4xl font-bold text-white mb-3">{{ $user->formatAmount($totalBalance) }}</p>
+                    <div class="flex items-center gap-2">
+                        @if($isBalancePositive)
+                            <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 3l7 7h-4v7h-6v-7H3l7-7z"/>
+                            </svg>
+                        @else
+                            <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 17l-7-7h4V3h6v7h4l-7 7z"/>
+                            </svg>
+                        @endif
+                        <span class="text-lg font-semibold {{ $isBalancePositive ? 'text-green-400' : 'text-red-400' }}">
+                            {{ $user->formatAmount(abs($balanceChange)) }} ({{ number_format(abs($balanceChange), 2) }}%)
+                        </span>
+                        <span class="text-sm text-gray-400">Today</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="px-6 pb-6 pt-4">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-sm uppercase tracking-wide text-gray-400">Watchlist</h3>
