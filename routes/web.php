@@ -34,6 +34,11 @@ Route::view('terms', 'pages.terms')->name('terms');
 Route::view('privacy', 'pages.privacy')->name('privacy');
 Route::view('faq', 'pages.faq')->name('faq');
 
+// What we offer pages
+Route::view('stocks', 'pages.stocks')->name('stocks');
+Route::view('money-market-funds', 'pages.money-market-funds')->name('money-market-funds');
+Route::view('savings', 'pages.savings')->name('savings');
+
 // AI Trader Routes (Public)
 Route::get('ai-traders', [AiTraderController::class, 'index'])->name('ai-traders.index');
 Route::get('ai-traders/plan/{plan}', [AiTraderController::class, 'showPlan'])->name('ai-traders.plan');
@@ -219,7 +224,7 @@ Route::get('debug-notifications', function () {
 Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], function(){
     Route::get('dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('trade-hub', [UserController::class, 'tradeHub'])->name('nav.trade');
-    Route::get('stocks-directory', [UserController::class, 'stocksDirectory'])->name('nav.stocks');
+    Route::get('assets-directory', [UserController::class, 'assetsDirectory'])->name('nav.assets');
     Route::get('wallet', [UserController::class, 'wallet'])->name('nav.wallet');
     Route::get('profile-overview', [UserController::class, 'profileOverview'])->name('nav.profile');
     Route::get('profile', [UserController::class, 'profile'])->name('profile');

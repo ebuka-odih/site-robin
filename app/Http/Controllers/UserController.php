@@ -302,7 +302,10 @@ class UserController extends Controller
             ->orderByDesc('price_change_24h')
             ->take(12)
             ->get();
-        $cryptoAssets = Asset::where('type', 'crypto')->orderByDesc('price_change_24h')->take(6)->get();
+        $cryptoAssets = Asset::where('type', 'crypto')
+            ->orderByDesc('market_cap')
+            ->take(12)
+            ->get();
         $tradeHistory = LiveTrade::where('user_id', $user->id)
             ->latest()
             ->take(6)
@@ -310,12 +313,16 @@ class UserController extends Controller
         return view('dashboard.nav.trade', compact('user', 'stockAssets', 'cryptoAssets', 'tradeHistory'));
     }
 
-    public function stocksDirectory(Request $request)
+    public function assetsDirectory(Request $request)
     {
         $user = Auth::user();
         $search = $request->input('search');
-        
-        $stocks = Asset::where('type', 'stock')
+        $type = $request->input('type', 'stock');
+        if (!in_array($type, ['stock', 'crypto'])) {
+            $type = 'stock';
+        }
+
+        $assets = Asset::where('type', $type)
             ->when($search, function($query, $search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('symbol', 'like', '%' . $search . '%')
@@ -325,9 +332,17 @@ class UserController extends Controller
             ->orderByDesc('market_cap')
             ->orderByDesc('price_change_24h')
             ->paginate(30)
-            ->appends(['search' => $search]);
+            ->appends([
+                'search' => $search,
+                'type' => $type,
+            ]);
 
-        return view('dashboard.nav.stocks', compact('user', 'stocks', 'search'));
+        return view('dashboard.nav.assets', [
+            'user' => $user,
+            'assets' => $assets,
+            'search' => $search,
+            'type' => $type,
+        ]);
     }
 
     public function wallet()

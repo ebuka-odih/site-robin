@@ -15,7 +15,7 @@
                 <p class="text-2xl font-semibold">Trade crypto & stocks</p>
                 <p class="text-gray-500 text-sm">Use the advanced trading workstation for real-time execution.</p>
             </div>
-            <a href="{{ route('user.liveTrading.index') }}" class="rounded-full bg-[#00ff5f] px-6 py-3 text-black font-semibold text-sm text-center">Open Trading Desk</a>
+            <a href="{{ route('user.nav.assets', ['type' => 'stock']) }}" class="rounded-full bg-[#00ff5f] px-6 py-3 text-black font-semibold text-sm text-center">Open Trading Desk</a>
         </div>
     </div>
 
@@ -26,7 +26,7 @@
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#crypto-list">Crypto</button>
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#history-list">History</button>
             </div>
-            <a href="{{ route('user.nav.stocks') }}" class="text-xs text-gray-400 hover:text-white">See market</a>
+            <a href="{{ route('user.nav.assets', ['type' => 'stock']) }}" class="text-xs text-gray-400 hover:text-white">See market</a>
         </div>
         <div id="stock-list" class="grid gap-3 md:grid-cols-2">
             @forelse($stockAssets as $asset)

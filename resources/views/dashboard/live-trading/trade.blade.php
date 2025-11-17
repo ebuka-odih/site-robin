@@ -1,4 +1,4 @@
-i@extends('dashboard.new-layout')
+@extends('dashboard.new-layout')
 
 @section('content')
 <div class="space-y-6 text-white">
@@ -9,22 +9,22 @@ i@extends('dashboard.new-layout')
             <h1 class="text-2xl font-semibold tracking-tight">{{ is_array($asset) ? $asset['name'] : $asset->name }}</h1>
             <p class="text-sm text-gray-400">{{ strtoupper($assetType) }} Trading</p>
         </div>
-        <a href="{{ route('user.liveTrading.index') }}" class="rounded-full border border-[#1f1f1f] px-4 py-2 text-sm text-gray-400 hover:border-[#1fff9c]/30 hover:text-white transition">
+        <a href="{{ route('user.nav.trade') }}" class="rounded-full border border-[#1f1f1f] px-4 py-2 text-sm text-gray-400 hover:border-[#1fff9c]/30 hover:text-white transition">
             ← Back
         </a>
     </div>
 
     <!-- Trading Interface -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Chart Section (75% width) -->
-        <div class="lg:col-span-3">
+    <div class="grid grid-cols-1 lg:grid-cols-6 gap-6">
+        <!-- Chart Section -->
+        <div class="lg:col-span-4">
             <div class="rounded-[32px] border border-[#101010] bg-[#040404] overflow-hidden">
                 <div class="border-b border-[#121212] px-6 py-4">
                     <h2 class="text-lg font-semibold">Price Chart</h2>
                 </div>
                 
                 <!-- TradingView Chart Container -->
-                <div class="relative w-full p-2">
+                <div class="relative w-full p-0">
                     <div id="tradingViewChart" class="w-full h-[500px] lg:h-[700px] bg-[#030303] rounded-xl overflow-hidden border border-[#0f0f0f]">
                         <div class="flex items-center justify-center h-full text-gray-500">
                             <div class="text-center">
@@ -39,8 +39,8 @@ i@extends('dashboard.new-layout')
             </div>
         </div>
 
-        <!-- Trading Panel (25% width) -->
-        <div class="lg:col-span-1">
+        <!-- Trading Panel -->
+        <div class="lg:col-span-2">
             <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 space-y-6">
                 <h2 class="text-lg font-semibold">Place Trade</h2>
                 
@@ -58,19 +58,21 @@ i@extends('dashboard.new-layout')
                 
                 <!-- Current Price Display -->
                 <div class="rounded-2xl bg-[#0a0a0a] p-6 text-center">
-                    <p class="text-4xl font-bold">${{ number_format(is_array($asset) ? $asset['current_price'] : $asset->current_price, 4) }}</p>
                     @php
+                        $currentPrice = is_array($asset) ? $asset['current_price'] : $asset->current_price;
                         $change = is_array($asset) ? $asset['price_change_24h'] : $asset->price_change_24h;
-                        $changeColor = $change >= 0 ? 'text-green-400' : 'text-red-400';
-                        $changeIcon = $change >= 0 ? '↗' : '↘';
+                        $decimals = $assetType === 'crypto' ? 6 : 2;
                     @endphp
-                    <p class="text-sm {{ $changeColor }} mt-2">
-                        {{ $changeIcon }} {{ number_format(abs($change), 2) }}% <span class="text-gray-500">24h</span>
+                    <p id="currentPriceValue" data-decimals="{{ $decimals }}" class="text-4xl font-bold">
+                        ${{ number_format($currentPrice, $decimals) }}
+                    </p>
+                    <p id="priceChangeValue" class="text-sm mt-2 {{ $change >= 0 ? 'text-green-400' : 'text-red-400' }}">
+                        {{ $change >= 0 ? '↗' : '↘' }} {{ number_format(abs($change), 2) }}% <span class="text-gray-500">24h</span>
                     </p>
                 </div>
 
                 <!-- Trading Form -->
-                <form id="tradingForm" class="space-y-4">
+                <form id="tradingForm" class="space-y-4" data-current-price="{{ $currentPrice }}">
                     @csrf
                     <input type="hidden" name="asset_type" value="{{ $assetType }}">
                     <input type="hidden" name="symbol" value="{{ is_array($asset) ? $asset['symbol'] : $asset->symbol }}">
@@ -101,12 +103,16 @@ i@extends('dashboard.new-layout')
                     <!-- Limit Order Fields -->
                     <div id="limitOrderFields" class="hidden space-y-4">
                         <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wide text-gray-400">Amount ({{ auth()->user()->currency ?? 'USD' }})</label>
+                            <input type="number" name="limit_amount" step="0.01" min="1" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="100.00" id="limitAmountInput">
+                        </div>
+                        <div class="space-y-2">
                             <label class="text-xs uppercase tracking-wide text-gray-400">Price</label>
-                            <input type="number" name="price" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00">
+                            <input type="number" name="price" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00" id="limitPriceInput">
                         </div>
                         <div class="space-y-2">
                             <label class="text-xs uppercase tracking-wide text-gray-400">Quantity</label>
-                            <input type="number" name="quantity" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00">
+                            <input type="number" name="quantity" step="0.00000001" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="0.00" id="limitQuantityInput">
                         </div>
                     </div>
 
@@ -114,7 +120,7 @@ i@extends('dashboard.new-layout')
                     <div id="marketOrderFields">
                         <div class="space-y-2">
                             <label class="text-xs uppercase tracking-wide text-gray-400">Amount ({{ auth()->user()->currency ?? 'USD' }})</label>
-                            <input type="number" name="amount" step="0.01" min="1" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="100.00">
+                            <input type="number" name="amount" step="0.01" min="1" class="w-full rounded-2xl border border-[#191919] bg-[#030303] px-4 py-3 text-white focus:border-[#1fff9c] focus:outline-none" placeholder="100.00" id="marketAmountInput">
                         </div>
                     </div>
 
@@ -133,7 +139,7 @@ i@extends('dashboard.new-layout')
                     </div>
 
                     <!-- Place Order Button -->
-                    <button type="submit" class="w-full rounded-2xl bg-[#5c28ff] py-3 text-sm font-semibold text-white hover:bg-[#4e1fff] transition flex items-center justify-center gap-2">
+                    <button type="submit" class="w-full rounded-2xl bg-[#0f6d42] py-3 text-sm font-semibold text-white hover:bg-[#0a5231] transition flex items-center justify-center gap-2">
                         <span id="submitText">Place Order</span>
                         <svg id="submitSpinner" class="hidden h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -164,7 +170,7 @@ i@extends('dashboard.new-layout')
                 @php
                     $isBuy = strtolower($trade->side) === 'buy';
                     $statusColor = match($trade->status) {
-                        'completed', 'closed' => 'text-green-400',
+                        'filled', 'completed', 'closed' => 'text-green-400',
                         'cancelled' => 'text-red-400',
                         default => 'text-yellow-400',
                     };
@@ -194,21 +200,47 @@ i@extends('dashboard.new-layout')
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize TradingView Chart
     initTradingViewChart('{{ is_array($asset) ? $asset["symbol"] : $asset->symbol }}', '{{ $assetType }}');
+    initLivePrice();
+    const tradeSuccessModal = document.getElementById('tradeSuccessModal');
+    const tradeSuccessConfirm = document.getElementById('tradeSuccessConfirm');
     
     // Order type switching
     const orderType = document.getElementById('orderType');
     const limitFields = document.getElementById('limitOrderFields');
     const marketFields = document.getElementById('marketOrderFields');
+    const marketAmountInput = document.getElementById('marketAmountInput');
+    const limitAmountInput = document.getElementById('limitAmountInput');
+    const limitPriceInput = document.getElementById('limitPriceInput');
+    const limitQuantityInput = document.getElementById('limitQuantityInput');
     
     orderType.addEventListener('change', function() {
         if (this.value === 'limit') {
             limitFields.classList.remove('hidden');
             marketFields.classList.add('hidden');
+            if (limitAmountInput && !limitAmountInput.value && marketAmountInput) {
+                limitAmountInput.value = marketAmountInput.value;
+            }
+            updateLimitQuantity();
         } else {
             limitFields.classList.add('hidden');
             marketFields.classList.remove('hidden');
         }
     });
+    
+    const updateLimitQuantity = () => {
+        if (!limitAmountInput || !limitPriceInput || !limitQuantityInput) return;
+        const price = parseFloat(limitPriceInput.value);
+        const amount = parseFloat(limitAmountInput.value);
+        if (price > 0 && amount > 0) {
+            limitQuantityInput.value = (amount / price).toFixed(8);
+        } else {
+            limitQuantityInput.value = '';
+        }
+    };
+    
+    limitAmountInput?.addEventListener('input', updateLimitQuantity);
+    
+    limitPriceInput?.addEventListener('input', updateLimitQuantity);
     
     // Side switching
     const sideBtns = document.querySelectorAll('.side-btn');
@@ -284,7 +316,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.querySelector('.buy-btn').classList.add('active', 'bg-green-600', 'text-white', 'border-green-600');
                     document.querySelector('.buy-btn').classList.remove('bg-[#0a0a0a]', 'text-gray-400', 'border-[#1f1f1f]');
                     sideInput.value = 'buy';
-                }, 3000);
+
+                    openTradeSuccessModal();
+                }, 500);
             } else {
                 // Show error message
                 submitText.textContent = 'Place Order';
@@ -371,5 +405,82 @@ function initTradingViewChart(symbol, assetType) {
         }
     });
 }
+
+function initLivePrice() {
+    const priceEl = document.getElementById('currentPriceValue');
+    const changeEl = document.getElementById('priceChangeValue');
+    if (!priceEl || !changeEl) {
+        return;
+    }
+
+    const decimals = parseInt(priceEl.dataset.decimals ?? '2', 10);
+    const assetType = '{{ $assetType }}';
+    const symbol = '{{ is_array($asset) ? $asset["symbol"] : $asset->symbol }}';
+
+    const formatter = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    });
+
+    const fetchPrice = () => {
+        const url = new URL('{{ route('user.liveTrading.price') }}', window.location.origin);
+        url.searchParams.set('asset_type', assetType);
+        url.searchParams.set('symbol', symbol);
+
+        fetch(url.toString())
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) return;
+                const price = parseFloat(data.price ?? 0) || 0;
+                const change = parseFloat(data.change_24h ?? 0) || 0;
+                priceEl.textContent = `$${formatter.format(price)}`;
+                changeEl.classList.remove('text-green-400', 'text-red-400');
+                changeEl.classList.add(change >= 0 ? 'text-green-400' : 'text-red-400');
+                changeEl.innerHTML = `${change >= 0 ? '↗' : '↘'} ${Math.abs(change).toFixed(2)}% <span class="text-gray-500">24h</span>`;
+            })
+            .catch(() => {});
+    };
+
+    fetchPrice();
+    setInterval(fetchPrice, 60000);
+}
+
+function openTradeSuccessModal() {
+    const modal = document.getElementById('tradeSuccessModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeTradeSuccessModal() {
+    const modal = document.getElementById('tradeSuccessModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    window.location.reload();
+}
+
+document.addEventListener('click', function(event) {
+    if (event.target && event.target.id === 'tradeSuccessConfirm') {
+        closeTradeSuccessModal();
+    }
+});
 </script>
 @endsection
+<!-- Trade Success Modal -->
+<div id="tradeSuccessModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 px-4">
+    <div class="w-full max-w-sm rounded-[28px] border border-[#111] bg-[#050505] p-6 text-center space-y-4">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-500/10 text-green-300 border border-green-500/30">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-lg font-semibold text-white">Order Placed</p>
+            <p class="text-sm text-gray-400">Your trade has been submitted successfully.</p>
+        </div>
+        <button id="tradeSuccessConfirm" class="w-full rounded-2xl bg-[#00ff5f] py-3 text-black font-semibold hover:bg-[#05d454]">
+            OK
+        </button>
+    </div>
+</div>

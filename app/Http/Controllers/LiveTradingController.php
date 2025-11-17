@@ -13,7 +13,10 @@ class LiveTradingController extends Controller
     {
         $user = Auth::user();
         $liveTrades = $user->liveTrades()->latest()->get();
-        $cryptoAssets = Asset::where('type', 'crypto')->get();
+        $cryptoAssets = Asset::where('type', 'crypto')
+            ->orderByDesc('market_cap')
+            ->take(12)
+            ->get();
         $stockAssets = Asset::where('type', 'stock')->get();
         $forexAssets = collect([
             // Major Pairs
@@ -192,7 +195,7 @@ class LiveTradingController extends Controller
                 }
             }
 
-            $status = $request->order_type === 'market' ? 'completed' : 'pending';
+            $status = $request->order_type === 'market' ? 'filled' : 'pending';
             $executionPrice = $request->order_type === 'market'
                 ? ($marketPrice > 0 ? $marketPrice : ($request->price ?? 0))
                 : (float) $request->price;
@@ -232,7 +235,7 @@ class LiveTradingController extends Controller
                 'leverage' => $request->leverage ?? 1.00,
                 'status' => $status,
                 'entry_price' => $executionPrice ?: null,
-                'filled_at' => $status === 'completed' ? now() : null,
+                'filled_at' => $status === 'filled' ? now() : null,
                 'profit_loss' => 0
             ]);
 
@@ -283,7 +286,7 @@ class LiveTradingController extends Controller
             return $asset;
         }
 
-        return [
+        return (object) [
             'symbol' => $symbol,
             'name' => $symbol,
             'current_price' => rand(100, 200) / 100,
@@ -366,6 +369,7 @@ class LiveTradingController extends Controller
     public function refreshPrices(Request $request)
     {
         try {
+            @set_time_limit(120);
             $priceService = new \App\Services\AssetPriceService();
             
             // Update crypto prices
@@ -400,7 +404,7 @@ class LiveTradingController extends Controller
             ->get();
             
         $closedTrades = LiveTrade::where('user_id', $user->id)
-            ->whereIn('status', ['filled', 'cancelled'])
+            ->whereIn('status', ['closed', 'cancelled'])
             ->orderBy('created_at', 'desc')
             ->get();
             

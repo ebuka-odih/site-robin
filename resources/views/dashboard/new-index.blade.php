@@ -113,7 +113,7 @@
             <div class="px-6 pb-6 pt-4">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-sm uppercase tracking-wide text-gray-400">Watchlist</h3>
-                    <a href="{{ url('user/stocks-directory') }}" class="text-xs text-[#a1a1a1] hover:text-white">View all stocks</a>
+                    <a href="{{ url('user/assets-directory?type=stock') }}" class="text-xs text-[#a1a1a1] hover:text-white">View all stocks</a>
                 </div>
                 <div class="space-y-3">
                     @forelse ($watchlist as $stock)
@@ -162,7 +162,7 @@
                     @endforelse
                 </div>
                 <div class="mt-4 text-center">
-                    <a href="{{ url('user/stocks-directory') }}" class="inline-flex items-center justify-center rounded-full border border-[#1fff9c]/30 px-5 py-2 text-xs font-semibold text-[#1fff9c] hover:border-[#1fff9c]">
+                    <a href="{{ url('user/assets-directory?type=stock') }}" class="inline-flex items-center justify-center rounded-full border border-[#1fff9c]/30 px-5 py-2 text-xs font-semibold text-[#1fff9c] hover:border-[#1fff9c]">
                         View all stocks
                     </a>
                 </div>

@@ -41,31 +41,35 @@
                 </div>
                 <nav class="hidden items-center gap-6 text-sm text-[#35276e] md:flex">
                     <div class="group relative">
-                        <button class="flex items-center gap-1 font-medium hover:text-[#120732]">
+                        <button class="flex items-center gap-1 font-medium hover:text-[#120732] py-2">
                             What we offer
                             <svg class="h-3 w-3 text-[#5c28ff]" fill="none" viewBox="0 0 10 6">
                                 <path d="M9 1L5 5 1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <div class="invisible absolute left-0 top-full mt-4 w-48 rounded-2xl border border-[#f0edff] bg-white py-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
-                            <a href="#" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Stocks & ETFs</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Money Market Funds</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Savings</a>
+                        <div class="invisible absolute left-0 top-full pt-2 w-48 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                            <div class="rounded-2xl border border-[#f0edff] bg-white py-3 shadow-xl">
+                                <a href="{{ route('stocks') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Stocks & ETFs</a>
+                                <a href="{{ route('money-market-funds') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Money Market Funds</a>
+                                <a href="{{ route('savings') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Savings</a>
+                            </div>
                         </div>
                     </div>
                     <a href="#" class="text-[#35276e] hover:text-[#120732]">Pricing</a>
                     <a href="{{ route('about') }}" class="text-[#35276e] hover:text-[#120732]">About</a>
                     <div class="group relative">
-                        <button class="flex items-center gap-1 text-[#35276e] hover:text-[#120732]">
+                        <button class="flex items-center gap-1 text-[#35276e] hover:text-[#120732] py-2">
                             More
                             <svg class="h-3 w-3 text-[#5c28ff]" fill="none" viewBox="0 0 10 6">
                                 <path d="M9 1L5 5 1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <div class="invisible absolute left-0 top-full mt-4 w-40 rounded-2xl border border-[#f0edff] bg-white py-3 opacity-0 shadow-xl transition group-hover:visible group-hover:opacity-100">
-                            <a href="{{ route('faq') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Support</a>
-                            <a href="{{ route('contact') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Contact</a>
-                            <a href="{{ route('products') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff]">Products</a>
+                        <div class="invisible absolute left-0 top-full pt-2 w-40 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
+                            <div class="rounded-2xl border border-[#f0edff] bg-white py-3 shadow-xl">
+                                <a href="{{ route('faq') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Support</a>
+                                <a href="{{ route('contact') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Contact</a>
+                                <a href="{{ route('products') }}" class="block px-4 py-2 text-sm text-[#35276e] hover:bg-[#f7f4ff] transition-colors">Products</a>
+                            </div>
                         </div>
                     </div>
                 </nav>
@@ -104,9 +108,9 @@
                 <div class="space-y-3">
                     <button class="w-full rounded-2xl border border-[#f0edff] px-4 py-2 text-left font-medium text-[#35276e]">What we offer</button>
                     <div class="space-y-2 pl-4 text-[#6b628d]">
-                        <a href="#" class="block">Stocks & ETFs</a>
-                        <a href="#" class="block">Money Market Funds</a>
-                        <a href="#" class="block">Savings</a>
+                        <a href="{{ route('stocks') }}" class="block">Stocks & ETFs</a>
+                        <a href="{{ route('money-market-funds') }}" class="block">Money Market Funds</a>
+                        <a href="{{ route('savings') }}" class="block">Savings</a>
                     </div>
                 </div>
                 <a href="#" class="block">Pricing</a>

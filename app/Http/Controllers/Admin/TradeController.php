@@ -120,7 +120,7 @@ class TradeController extends Controller
         $user->profit = ($user->profit ?? 0) + $profitLoss;
         $user->save();
         
-        return redirect()->route('admin.trade-history')->with('success', 'Trade closed successfully!');
+        return redirect()->route('admin.trade.history')->with('success', 'Trade closed successfully!');
     }
 
     public function destroy(Request $request, $id)
