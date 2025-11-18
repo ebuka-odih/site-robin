@@ -228,18 +228,34 @@
                     data: [3.5, 6.0, 8.4, 10.3, 12.14]
                 }
             };
-            const baseChartDataSets = Object.keys(serverChartData || {}).length
-                ? serverChartData
-                : fallbackChartData;
-
+            const chartDataByAccount = serverChartData || {};
             const defaultRange = '1M';
             let portfolioChart = null;
             let currentRange = defaultRange;
             const tabData = @json($accountTabs);
             let currentChartBalance = tabData?.[0]?.raw_balance ?? 0;
+            let currentAccountId = tabData?.[0]?.id ?? 'investing';
+
+            const getDataSource = () => {
+                const accountData = chartDataByAccount[currentAccountId];
+                if (accountData && Object.keys(accountData).length) {
+                    return accountData;
+                }
+                return fallbackChartData;
+            };
 
             const getScaledDataset = (range, balance) => {
-                const dataset = baseChartDataSets[range] || baseChartDataSets[defaultRange];
+                const dataSource = getDataSource();
+                const dataset = dataSource?.[range] || dataSource?.[defaultRange];
+                if (!dataset) {
+                    return { labels: [], data: [] };
+                }
+                if (dataset?.raw) {
+                    return {
+                        labels: dataset.labels ?? [],
+                        data: dataset.data ?? [],
+                    };
+                }
                 const values = dataset.data;
                 const lastBase = values[values.length - 1] || 1;
                 if (!values.length) {
@@ -319,6 +335,7 @@
                 tab.addEventListener('click', () => {
                     const currentId = tab.dataset.account;
                     const currentData = tabData.find(item => item.id === currentId) || tabData[0];
+                    currentAccountId = currentId || currentAccountId;
                     currentChartBalance = currentData.raw_balance ?? 0;
                     updateChartRange(currentRange);
 

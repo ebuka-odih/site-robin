@@ -94,6 +94,7 @@ class LiveTradingController extends Controller
             ->latest()
             ->take(5)
             ->get() : collect();
+        $holdingsBySymbol = $this->getHoldingsBySymbol($user);
         
         if ($assetType === 'stock') {
             $relatedStocks = Asset::where('type', 'stock')
@@ -102,10 +103,10 @@ class LiveTradingController extends Controller
                 ->take(4)
                 ->get();
 
-            return view('dashboard.live-trading.stock', compact('asset', 'assetType', 'user', 'tradeHistory', 'relatedStocks'));
+            return view('dashboard.live-trading.stock', compact('asset', 'assetType', 'user', 'tradeHistory', 'relatedStocks', 'holdingsBySymbol'));
         }
 
-        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory'));
+        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory', 'holdingsBySymbol'));
     }
 
     public function advancedTrade(Request $request)
@@ -120,8 +121,9 @@ class LiveTradingController extends Controller
             ->latest()
             ->take(5)
             ->get() : collect();
+        $holdingsBySymbol = $this->getHoldingsBySymbol($user);
 
-        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory'));
+        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory', 'holdingsBySymbol'));
     }
 
     public function store(Request $request)
@@ -391,6 +393,21 @@ class LiveTradingController extends Controller
         }
     }
     
+    private function getHoldingsBySymbol($user)
+    {
+        if (!$user) {
+            return collect();
+        }
+
+        return $user->holdings()
+            ->with('asset')
+            ->get()
+            ->filter(fn ($holding) => $holding->asset && $holding->asset->symbol)
+            ->mapWithKeys(function ($holding) {
+                return [strtoupper($holding->asset->symbol) => $holding];
+            });
+    }
+
     /**
      * Show trading history with open and closed trades
      */

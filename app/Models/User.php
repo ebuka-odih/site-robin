@@ -229,6 +229,11 @@ class User extends Authenticatable
         return '$' . number_format($this->profit, 2);
     }
 
+    public function balanceHistories()
+    {
+        return $this->hasMany(BalanceHistory::class);
+    }
+
     /**
      * Get the user's avatar URL
      */

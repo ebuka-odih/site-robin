@@ -7,14 +7,23 @@ use App\Models\Trade;
 use App\Models\LiveTrade;
 use App\Models\TradePair;
 use App\Models\User;
+use App\Services\BalanceHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
+    protected BalanceHistoryService $balanceHistoryService;
+
+    public function __construct(BalanceHistoryService $balanceHistoryService)
+    {
+        $this->balanceHistoryService = $balanceHistoryService;
+    }
+
     public function dashboard()
     {
         $user = Auth::user();
@@ -167,6 +176,9 @@ class UserController extends Controller
         } else {
             $stockAssets = $preferredStocks;
         }
+        $pnlChangeData = $this->buildChangeSummary($user, 'pnl', (float) ($user->profit ?? 0));
+        $walletChangeData = $this->buildChangeSummary($user, 'wallet', (float) ($user->balance ?? 0), 'Available to invest');
+
         $accountTabs = [
             [
                 'id' => 'investing',
@@ -180,25 +192,45 @@ class UserController extends Controller
                 'id' => 'pnl',
                 'label' => 'PNL',
                 'balance' => $user->formatAmount($user->profit ?? 0),
-                'change' => ($user->profit ?? 0) >= 0
-                    ? sprintf('%s (%+.2f%%)', $user->formatAmount($user->profit ?? 0), 100)
-                    : sprintf('%s (%+.2f%%)', $user->formatAmount($user->profit ?? 0), 100),
-                'isPositive' => ($user->profit ?? 0) >= 0,
+                'change' => $pnlChangeData['text'],
+                'isPositive' => $pnlChangeData['is_positive'],
                 'raw_balance' => (float) ($user->profit ?? 0),
             ],
             [
                 'id' => 'wallet',
                 'label' => 'Wallet Balance',
                 'balance' => $user->formatAmount($user->balance ?? 0),
-                'change' => 'Available to invest',
-                'isPositive' => true,
+                'change' => $walletChangeData['text'],
+                'isPositive' => $walletChangeData['is_positive'],
                 'raw_balance' => (float) ($user->balance ?? 0),
             ],
         ];
-        $portfolioChartData = $this->buildPortfolioChartData(
-            $investingBalanceRaw,
-            (float) ($user->profit ?? 0)
-        );
+        $this->balanceHistoryService->recordSnapshots($user, [
+            'investing' => $investingBalanceRaw,
+            'pnl' => (float) ($user->profit ?? 0),
+            'wallet' => (float) ($user->balance ?? 0),
+            'trading' => (float) ($user->trading_balance ?? 0),
+        ]);
+        $portfolioChartData = [
+            'investing' => $this->buildPortfolioChartData(
+                $user,
+                'investing',
+                $investingBalanceRaw,
+                max(abs($investingChangePercent) / 100 * max($investingBalanceRaw, 1), 1)
+            ),
+            'pnl' => $this->buildPortfolioChartData(
+                $user,
+                'pnl',
+                (float) ($user->profit ?? 0),
+                max(abs($pnlChangeData['delta'] ?? 0), 1)
+            ),
+            'wallet' => $this->buildPortfolioChartData(
+                $user,
+                'wallet',
+                (float) ($user->balance ?? 0),
+                max(abs($walletChangeData['delta'] ?? 0), 1)
+            ),
+        ];
 
         $dashboardData = [
             'user' => $user,
@@ -270,7 +302,14 @@ class UserController extends Controller
             ->latest()
             ->take(6)
             ->get();
-        return view('dashboard.nav.trade', compact('user', 'stockAssets', 'cryptoAssets', 'tradeHistory'));
+        $holdingsBySymbol = $user->holdings()
+            ->with('asset')
+            ->get()
+            ->filter(fn ($holding) => $holding->asset && $holding->asset->symbol)
+            ->mapWithKeys(function ($holding) {
+                return [strtoupper($holding->asset->symbol) => $holding];
+            });
+        return view('dashboard.nav.trade', compact('user', 'stockAssets', 'cryptoAssets', 'tradeHistory', 'holdingsBySymbol'));
     }
 
     public function assetsDirectory(Request $request)
@@ -396,33 +435,41 @@ class UserController extends Controller
         ];
     }
 
-    private function buildPortfolioChartData(float $currentBalance, float $profit): array
+    private function buildPortfolioChartData(User $user, string $type, float $currentBalance, float $volatilityBase = 1): array
     {
+        $now = Carbon::now();
         $timeframes = [
-            '1D' => ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
-            '1W' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-            '1M' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            '3M' => ['Mar', 'Apr', 'May'],
-            '1Y' => ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
-            'All' => ['2019', '2020', '2021', '2022', '2023'],
+            '1D' => $now->copy()->subDay(),
+            '1W' => $now->copy()->subWeek(),
+            '1M' => $now->copy()->subMonth(),
+            '3M' => $now->copy()->subMonths(3),
+            '1Y' => $now->copy()->subYear(),
+            'All' => $now->copy()->subYears(5),
         ];
 
-        $endValue = max($currentBalance, 0);
-        $startValue = max($endValue - $profit, 0);
         $history = [];
-        foreach ($timeframes as $range => $labels) {
-            $points = max(count($labels), 2);
-            $series = $this->generateTrendSeries(
-                $points,
-                $startValue,
-                $endValue,
-                $profit,
-                $range
+        foreach ($timeframes as $range => $startDate) {
+            $series = collect(
+                $this->balanceHistoryService->getHistorySeries($user, $type, $startDate)
             );
-            $history[$range] = [
-                'labels' => $labels,
-                'data' => $series,
-            ];
+
+            if ($series->count() >= 1) {
+                $labels = $series->map(fn ($point) => $this->formatHistoryLabel(Carbon::parse($point['timestamp']), $range));
+                $data = $series->map(fn ($point) => round($point['value'], 2));
+
+                if ($data->count() === 1) {
+                    $labels->push($this->formatHistoryLabel(Carbon::now(), $range));
+                    $data->push(round($currentBalance, 2));
+                }
+
+                $history[$range] = [
+                    'labels' => $labels->toArray(),
+                    'data' => $data->toArray(),
+                    'raw' => true,
+                ];
+            } else {
+                $history[$range] = $this->fallbackChartDataset($range, $currentBalance, $volatilityBase);
+            }
         }
 
         return $history;
@@ -452,6 +499,65 @@ class UserController extends Controller
         }
 
         return $series;
+    }
+
+    private function fallbackChartDataset(string $range, float $currentBalance, float $volatilityBase): array
+    {
+        $labelSets = [
+            '1D' => ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
+            '1W' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+            '1M' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            '3M' => ['Mar', 'Apr', 'May'],
+            '1Y' => ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
+            'All' => ['2019', '2020', '2021', '2022', '2023'],
+        ];
+
+        $labels = $labelSets[$range] ?? $labelSets['1M'];
+        $points = max(count($labels), 2);
+        $endValue = max($currentBalance, 0);
+        $startValue = max($endValue - $profit, 0);
+        $series = $this->generateTrendSeries($points, $startValue, $endValue, $volatilityBase, $range);
+
+        return [
+            'labels' => $labels,
+            'data' => $series,
+            'raw' => false,
+        ];
+    }
+
+    private function formatHistoryLabel(Carbon $timestamp, string $range): string
+    {
+        return match ($range) {
+            '1D' => $timestamp->format('H:i'),
+            '1W' => $timestamp->format('D'),
+            '1M', '3M' => $timestamp->format('M d'),
+            '1Y', 'All' => $timestamp->format('M Y'),
+            default => $timestamp->format('M d'),
+        };
+    }
+
+    private function buildChangeSummary(User $user, string $type, float $currentValue, string $defaultText = null): array
+    {
+        $since = Carbon::now()->subDay();
+        $range = $this->balanceHistoryService->getRangeChange($user, $type, $since);
+
+        if ($defaultText && !$range['start'] && !$range['end']) {
+            return [
+                'text' => $defaultText,
+                'is_positive' => true,
+                'delta' => 0,
+            ];
+        }
+
+        $startValue = $range['start'] ?: $currentValue;
+        $delta = $range['delta'];
+        $percent = $startValue != 0 ? ($delta / $startValue) * 100 : 0;
+
+        return [
+            'text' => sprintf('%s (%+.2f%%)', $user->formatAmount($delta), $percent),
+            'is_positive' => $delta >= 0,
+            'delta' => $delta,
+        ];
     }
 
     public function wallet()

@@ -1,6 +1,9 @@
 @extends('dashboard.new-layout')
 
 @section('content')
+@php
+    $holdingsBySymbol = $holdingsBySymbol ?? collect();
+@endphp
 <div class="space-y-8 text-white">
     <div>
         <p class="text-xs uppercase tracking-wide text-[#08f58d]">Trading Hub</p>
@@ -71,6 +74,11 @@
                         'cancelled' => 'text-red-400',
                         default => 'text-yellow-400',
                     };
+                    $tradeSymbol = strtoupper($trade->symbol);
+                    $holding = $holdingsBySymbol[$tradeSymbol] ?? null;
+                    $pnlValue = $holding?->unrealized_pnl ?? null;
+                    $pnlPercent = $holding?->unrealized_pnl_percentage ?? null;
+                    $pnlPositive = $pnlValue >= 0;
                 @endphp
                 <div class="rounded-3xl border border-[#151515] bg-[#040404] p-4 flex items-center justify-between">
                     <div>
@@ -78,6 +86,12 @@
                             {{ strtoupper($trade->side) }} • {{ strtoupper($trade->symbol) }}
                         </p>
                         <p class="text-xs text-gray-500">{{ ucfirst($trade->order_type) }} • {{ $trade->created_at?->diffForHumans() }}</p>
+                        @if(!is_null($pnlValue))
+                            <p class="text-xs {{ $pnlPositive ? 'text-green-400' : 'text-red-400' }}">
+                                Gain/Loss: {{ $pnlPositive ? '+' : '' }}{{ $user->formatAmount(abs($pnlValue)) }}
+                                ({{ number_format($pnlPercent ?? 0, 2) }}%)
+                            </p>
+                        @endif
                     </div>
                     <div class="text-right">
                         <p class="text-white text-lg font-semibold">${{ number_format($trade->amount, 2) }}</p>

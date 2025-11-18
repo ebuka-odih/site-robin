@@ -6,6 +6,7 @@
     $isPositive = $change >= 0;
     $timeRanges = ['1D', '1W', '1M', '3M', '1Y', 'All'];
     $quickStocks = ($relatedStocks ?? collect())->take(4);
+    $holdingsBySymbol = $holdingsBySymbol ?? collect();
 @endphp
 
 <div class="text-white">
@@ -145,6 +146,11 @@
                                 'cancelled' => 'text-red-400',
                                 default => 'text-yellow-400',
                             };
+                            $tradeSymbol = strtoupper($trade->symbol);
+                            $holding = $holdingsBySymbol[$tradeSymbol] ?? null;
+                            $pnlValue = $holding?->unrealized_pnl ?? null;
+                            $pnlPercent = $holding?->unrealized_pnl_percentage ?? null;
+                            $pnlPositive = $pnlValue >= 0;
                         @endphp
                         <div class="rounded-2xl border border-[#121212] bg-[#050505] px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <div>
@@ -152,6 +158,12 @@
                                     {{ strtoupper($trade->side) }} • {{ strtoupper($trade->symbol) }}
                                 </p>
                                 <p class="text-xs text-gray-500">{{ ucfirst($trade->order_type) }} • {{ $trade->created_at?->diffForHumans() }}</p>
+                                @if(!is_null($pnlValue))
+                                    <p class="text-xs {{ $pnlPositive ? 'text-green-400' : 'text-red-400' }}">
+                                        Gain/Loss: {{ $pnlPositive ? '+' : '' }}{{ $user->formatAmount(abs($pnlValue)) }}
+                                        ({{ number_format($pnlPercent ?? 0, 2) }}%)
+                                    </p>
+                                @endif
                             </div>
                             <div class="text-right">
                                 <p class="text-base font-semibold text-white">${{ number_format($trade->amount, 2) }}</p>
