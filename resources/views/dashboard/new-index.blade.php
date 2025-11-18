@@ -138,18 +138,18 @@
         <div class="rounded-3xl border border-[#151515] bg-[#050505] p-6 mb-48">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h3 class="text-lg font-semibold text-white">Recent Activity</h3>
-                <a href="{{ route('user.transactions.index') }}" class="text-sm text-gray-400 hover:text-white">View all</a>
+                <a href="{{ route('user.deposit') }}" class="text-sm text-gray-400 hover:text-white">View all</a>
             </div>
             <div class="space-y-4">
                 @forelse($recentActivity ?? [] as $index => $activity)
                     <div class="flex items-center justify-between {{ $index < count($recentActivity) - 1 ? 'border-b border-[#101010] pb-4' : '' }}">
                         <div class="flex items-center gap-3">
                             @if($activity['type'] === 'deposit')
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20 text-green-300">
+                                <a href="{{ route('user.deposit') }}" class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20 text-green-300">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
-                                </div>
+                                </a>
                             @elseif($activity['type'] === 'withdrawal')
                                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/20 text-red-300">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

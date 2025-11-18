@@ -109,44 +109,45 @@
     </div>
 
     <div class="rounded-[32px] border border-[#101010] bg-[#040404]">
-        <div class="border-b border-[#121212] px-6 py-4 flex items-center justify-between">
+        <div class="border-b border-[#121212] px-6 py-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-sm uppercase tracking-wide text-gray-500">History</p>
                 <p class="text-lg font-semibold">Deposits timeline</p>
             </div>
+            <a href="{{ route('user.transactions.index') }}" class="text-xs text-[#00ff5f]">View all</a>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-                <thead class="text-xs uppercase tracking-wide text-gray-500">
-                    <tr class="grid grid-cols-7 border-b border-[#121212] px-6 py-3">
-                        <th class="text-left">Amount</th>
-                        <th class="text-left">Wallet</th>
-                        <th class="text-left">Method</th>
-                        <th class="text-left">Address</th>
-                        <th class="text-left">Status</th>
-                        <th class="text-left">Date</th>
-                        <th class="text-right">Actions</th>
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-[#030303] text-xs uppercase tracking-wide text-gray-500">
+                    <tr>
+                        <th class="px-6 py-3 font-semibold">Amount</th>
+                        <th class="px-6 py-3 font-semibold">Wallet</th>
+                        <th class="px-6 py-3 font-semibold">Method</th>
+                        <th class="px-6 py-3 font-semibold">Address</th>
+                        <th class="px-6 py-3 font-semibold">Status</th>
+                        <th class="px-6 py-3 font-semibold">Date</th>
+                        <th class="px-6 py-3 text-right font-semibold">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[#0f0f0f]">
                     @forelse($deposits as $deposit)
-                        <tr class="grid grid-cols-7 items-center px-6 py-4">
-                            <td>${{ number_format($deposit->amount, 2) }}</td>
-                            <td>{{ ucfirst($deposit->wallet_type) }}</td>
-                            <td>{{ $deposit->payment_method->crypto_display_name ?? '—' }}</td>
-                            <td class="text-xs text-gray-500 truncate">{{ $deposit->payment_method->address ?? '—' }}</td>
-                            <td>
-                                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $deposit->status == 1 ? 'bg-[#0f2b14] text-[#00ff5f]' : ($deposit->status == 2 ? 'bg-[#2b0f0f] text-[#ff4d4d]' : 'bg-[#1f1f1f] text-gray-300') }}">
+                        <tr class="hover:bg-[#050505] transition-colors">
+                            <td class="px-6 py-4 font-semibold text-white">${{ number_format($deposit->amount, 2) }}</td>
+                            <td class="px-6 py-4 capitalize text-gray-300">{{ $deposit->wallet_type }}</td>
+                            <td class="px-6 py-4 text-gray-300">{{ $deposit->payment_method->crypto_display_name ?? '—' }}</td>
+                            <td class="px-6 py-4 text-xs text-gray-500 max-w-[150px] truncate">{{ $deposit->payment_method->address ?? '—' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $deposit->status == 1 ? 'bg-[#0f2b14] text-[#00ff5f]' : ($deposit->status == 2 ? 'bg-[#2b0f0f] text-[#ff4d4d]' : 'bg-[#1f1f1f] text-gray-300') }}">
                                     {{ $deposit->status_badge_text ?? 'Pending' }}
                                 </span>
                             </td>
-                            <td>{{ $deposit->created_at->format('M d, Y') }}</td>
-                            <td class="text-right space-x-3 text-xs">
+                            <td class="px-6 py-4 text-gray-300">{{ $deposit->created_at->format('M d, Y') }}</td>
+                            <td class="px-6 py-4 text-right text-xs space-x-3">
                                 @if($deposit->proof)
-                                    <a href="{{ route('user.deposit.proof', $deposit->id) }}" class="text-[#00ff5f]">View proof</a>
+                                    <a href="{{ route('user.deposit.proof', $deposit->id) }}" class="text-[#00ff5f] hover:underline">View proof</a>
                                 @endif
                                 @if($deposit->status == 0)
-                                    <button onclick="cancelDeposit('{{ $deposit->id }}')" class="text-red-400">Cancel</button>
+                                    <button onclick="cancelDeposit('{{ $deposit->id }}')" class="text-red-400 hover:underline">Cancel</button>
                                 @endif
                             </td>
                         </tr>
