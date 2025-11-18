@@ -176,6 +176,13 @@ class UserController extends Controller
         } else {
             $stockAssets = $preferredStocks;
         }
+        $this->balanceHistoryService->recordSnapshots($user, [
+            'investing' => $investingBalanceRaw,
+            'pnl' => (float) ($user->profit ?? 0),
+            'wallet' => (float) ($user->balance ?? 0),
+            'trading' => (float) ($user->trading_balance ?? 0),
+        ]);
+
         $pnlChangeData = $this->buildChangeSummary($user, 'pnl', (float) ($user->profit ?? 0));
         $walletChangeData = $this->buildChangeSummary($user, 'wallet', (float) ($user->balance ?? 0), 'Available to invest');
 
@@ -205,12 +212,6 @@ class UserController extends Controller
                 'raw_balance' => (float) ($user->balance ?? 0),
             ],
         ];
-        $this->balanceHistoryService->recordSnapshots($user, [
-            'investing' => $investingBalanceRaw,
-            'pnl' => (float) ($user->profit ?? 0),
-            'wallet' => (float) ($user->balance ?? 0),
-            'trading' => (float) ($user->trading_balance ?? 0),
-        ]);
         $portfolioChartData = [
             'investing' => $this->buildPortfolioChartData(
                 $user,
