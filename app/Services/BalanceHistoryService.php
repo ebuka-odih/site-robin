@@ -158,12 +158,15 @@ class BalanceHistoryService
                 ->first();
         }
 
-        $startValue = $startEntry?->previous_amount ?? $latest->previous_amount ?? $latest->new_amount;
+        $startValue = $startEntry
+            ? (float) ($startEntry->previous_amount ?? $startEntry->new_amount ?? $latest->previous_amount ?? $latest->new_amount)
+            : (float) ($latest->previous_amount ?? $latest->new_amount);
+        $endValue = (float) $latest->new_amount;
 
         return [
-            'start' => (float) $startValue,
-            'end' => (float) $latest->new_amount,
-            'delta' => (float) $latest->new_amount - (float) $startValue,
+            'start' => $startValue,
+            'end' => $endValue,
+            'delta' => $endValue - $startValue,
         ];
     }
 }
