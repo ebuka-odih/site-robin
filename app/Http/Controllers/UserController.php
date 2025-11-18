@@ -52,84 +52,11 @@ class UserController extends Controller
         $investingChangePercent = $totalInvestedInStocks > 0
             ? (($currentHoldingsValue - $totalInvestedInStocks) / $totalInvestedInStocks) * 100
             : 0;
-        $completedLiveTrades = LiveTrade::where('user_id', $user->id)
-            ->whereIn('status', ['completed', 'filled', 'closed'])
-            ->orderBy('created_at')
-            ->get();
-
-        $livePortfolio = [];
-        foreach ($completedLiveTrades as $trade) {
-            $symbol = strtoupper($trade->symbol);
-            $quantity = (float) ($trade->quantity ?? 0);
-            if ($quantity <= 0) {
-                $priceForQuantity = (float) ($trade->price ?? $trade->entry_price ?? 0);
-                if ($priceForQuantity > 0 && $trade->amount) {
-                    $quantity = (float) $trade->amount / $priceForQuantity;
-                }
-            }
-            if ($quantity <= 0) {
-                continue;
-            }
-            $cost = (float) ($trade->amount ?? ($quantity * ($trade->price ?? $trade->entry_price ?? 0)));
-            if (!isset($livePortfolio[$symbol])) {
-                $livePortfolio[$symbol] = [
-                    'symbol' => $symbol,
-                    'quantity' => 0,
-                    'cost' => 0,
-                ];
-            }
-            if ($trade->side === 'buy') {
-                $livePortfolio[$symbol]['quantity'] += $quantity;
-                $livePortfolio[$symbol]['cost'] += $cost;
-            } else {
-                $existingQty = $livePortfolio[$symbol]['quantity'];
-                if ($existingQty <= 0) {
-                    continue;
-                }
-                $qtyToRemove = min($quantity, $existingQty);
-                $avgCost = $livePortfolio[$symbol]['cost'] / max($existingQty, 0.0000001);
-                $livePortfolio[$symbol]['quantity'] = max($existingQty - $qtyToRemove, 0);
-                $livePortfolio[$symbol]['cost'] = max($livePortfolio[$symbol]['cost'] - ($avgCost * $qtyToRemove), 0);
-            }
-        }
-        $livePortfolio = array_filter($livePortfolio, fn ($position) => $position['quantity'] > 0 && $position['cost'] > 0);
-
-        if (!empty($livePortfolio)) {
-            $symbols = array_keys($livePortfolio);
-            $assetPrices = Asset::whereIn('symbol', $symbols)->get()->keyBy('symbol');
-            $totalCostBasis = 0;
-            $totalGain = 0;
-
-            foreach ($livePortfolio as $symbol => &$position) {
-                $assetPrice = optional($assetPrices->get($symbol))->current_price;
-                $currentPrice = $assetPrice !== null
-                    ? (float) $assetPrice
-                    : ($position['quantity'] > 0 ? $position['cost'] / $position['quantity'] : 0);
-                $position['current_value'] = $currentPrice * $position['quantity'];
-                $position['gain'] = $position['current_value'] - $position['cost'];
-                $position['gain_percent'] = $position['cost'] > 0
-                    ? ($position['gain'] / $position['cost']) * 100
-                    : 0;
-                $totalCostBasis += $position['cost'];
-                $totalGain += $position['gain'];
-            }
-            unset($position);
-
-            $gainPercent = $totalCostBasis > 0 ? ($totalGain / $totalCostBasis) * 100 : 0;
-            $investingBalanceRaw = $totalCostBasis;
-            $investingBalanceFormatted = $user->formatAmount($investingBalanceRaw);
-            $investingChangeText = sprintf('%s (%+.2f%%)', $user->formatAmount($totalGain), $gainPercent);
-            $investingIsPositive = $totalGain >= 0;
-        } else {
-            $liveTradeInvested = LiveTrade::where('user_id', $user->id)
-                ->where('side', 'buy')
-                ->whereNotIn('status', ['cancelled'])
-                ->sum('amount');
-            $investingBalanceRaw = $liveTradeInvested;
-            $investingBalanceFormatted = $user->formatAmount($investingBalanceRaw);
-            $investingChangeText = $liveTradeInvested > 0 ? 'Total spent on orders' : 'No holdings yet';
-            $investingIsPositive = true;
-        }
+        $investingMetrics = $this->calculateInvestingMetrics($user, $holdings);
+        $investingBalanceRaw = $investingMetrics['balance_raw'];
+        $investingBalanceFormatted = $investingMetrics['balance_formatted'];
+        $investingChangeText = $investingMetrics['change_text'];
+        $investingIsPositive = $investingMetrics['is_positive'];
         
         // Get bot trading data
         $botTradings = $user->botTradings()->get();
@@ -215,7 +142,7 @@ class UserController extends Controller
         })->count();
         
         $topSymbols = [
-            'AAPL', 'NVDA', 'AMZN', 'TSLA', 'MSFT',
+            'SPY', 'AAPL', 'NVDA', 'AMZN', 'TSLA', 'MSFT',
             'META', 'GOOGL', 'NFLX', 'ADBE', 'PEP',
             'DIS', 'LLY', 'COST', 'BRK.A', 'JNJ'
         ];
@@ -253,7 +180,9 @@ class UserController extends Controller
                 'id' => 'pnl',
                 'label' => 'PNL',
                 'balance' => $user->formatAmount($user->profit ?? 0),
-                'change' => ($user->profit ?? 0) >= 0 ? 'Total profit' : 'Total loss',
+                'change' => ($user->profit ?? 0) >= 0
+                    ? sprintf('%s (%+.2f%%)', $user->formatAmount($user->profit ?? 0), 100)
+                    : sprintf('%s (%+.2f%%)', $user->formatAmount($user->profit ?? 0), 100),
                 'isPositive' => ($user->profit ?? 0) >= 0,
                 'raw_balance' => (float) ($user->profit ?? 0),
             ],
@@ -301,10 +230,33 @@ class UserController extends Controller
     public function tradeHub()
     {
         $user = Auth::user();
-        $stockAssets = Asset::where('type', 'stock')
-            ->orderByDesc('price_change_24h')
-            ->take(12)
-            ->get();
+        $topSymbols = [
+            'SPY', 'AAPL', 'NVDA', 'AMZN', 'TSLA', 'MSFT',
+            'META', 'GOOGL', 'NFLX', 'ADBE', 'PEP',
+            'DIS', 'LLY', 'COST', 'BRK.A', 'JNJ'
+        ];
+
+        $preferredStocks = Asset::where('type', 'stock')
+            ->whereIn('symbol', $topSymbols)
+            ->get()
+            ->sortBy(function ($asset) use ($topSymbols) {
+                return array_search($asset->symbol, $topSymbols);
+            })
+            ->values();
+
+        if ($preferredStocks->count() < 12) {
+            $additionalNeeded = 12 - $preferredStocks->count();
+            $additionalStocks = Asset::where('type', 'stock')
+                ->whereNotIn('id', $preferredStocks->pluck('id'))
+                ->orderByDesc('price_change_24h')
+                ->take($additionalNeeded)
+                ->get();
+
+            $stockAssets = $preferredStocks->merge($additionalStocks);
+        } else {
+            $stockAssets = $preferredStocks->take(12);
+        }
+
         $cryptoAssets = Asset::where('type', 'crypto')
             ->orderByDesc('market_cap')
             ->take(12)
@@ -334,7 +286,7 @@ class UserController extends Controller
             })
             ->orderByDesc('market_cap')
             ->orderByDesc('price_change_24h')
-            ->paginate(30)
+            ->paginate(50)
             ->appends([
                 'search' => $search,
                 'type' => $type,
@@ -348,9 +300,103 @@ class UserController extends Controller
         ]);
     }
 
+    private function calculateInvestingMetrics(User $user, $holdings = null): array
+    {
+        $holdings = $holdings ?? $user->holdings()->with('asset')->get();
+        $completedLiveTrades = LiveTrade::where('user_id', $user->id)
+            ->whereIn('status', ['completed', 'filled', 'closed'])
+            ->orderBy('created_at')
+            ->get();
+
+        $livePortfolio = [];
+        foreach ($completedLiveTrades as $trade) {
+            $symbol = strtoupper($trade->symbol);
+            $quantity = (float) ($trade->quantity ?? 0);
+            if ($quantity <= 0) {
+                $priceForQuantity = (float) ($trade->price ?? $trade->entry_price ?? 0);
+                if ($priceForQuantity > 0 && $trade->amount) {
+                    $quantity = (float) $trade->amount / $priceForQuantity;
+                }
+            }
+            if ($quantity <= 0) {
+                continue;
+            }
+            $cost = (float) ($trade->amount ?? ($quantity * ($trade->price ?? $trade->entry_price ?? 0)));
+            if (!isset($livePortfolio[$symbol])) {
+                $livePortfolio[$symbol] = [
+                    'symbol' => $symbol,
+                    'quantity' => 0,
+                    'cost' => 0,
+                ];
+            }
+            if ($trade->side === 'buy') {
+                $livePortfolio[$symbol]['quantity'] += $quantity;
+                $livePortfolio[$symbol]['cost'] += $cost;
+            } else {
+                $existingQty = $livePortfolio[$symbol]['quantity'];
+                if ($existingQty <= 0) {
+                    continue;
+                }
+                $qtyToRemove = min($quantity, $existingQty);
+                $avgCost = $livePortfolio[$symbol]['cost'] / max($existingQty, 0.0000001);
+                $livePortfolio[$symbol]['quantity'] = max($existingQty - $qtyToRemove, 0);
+                $livePortfolio[$symbol]['cost'] = max($livePortfolio[$symbol]['cost'] - ($avgCost * $qtyToRemove), 0);
+            }
+        }
+        $livePortfolio = array_filter($livePortfolio, fn ($position) => $position['quantity'] > 0 && $position['cost'] > 0);
+
+        if (!empty($livePortfolio)) {
+            $symbols = array_keys($livePortfolio);
+            $assetPrices = Asset::whereIn('symbol', $symbols)->get()->keyBy('symbol');
+            $totalCostBasis = 0;
+            $totalGain = 0;
+
+            foreach ($livePortfolio as $symbol => &$position) {
+                $assetPrice = optional($assetPrices->get($symbol))->current_price;
+                $currentPrice = $assetPrice !== null
+                    ? (float) $assetPrice
+                    : ($position['quantity'] > 0 ? $position['cost'] / $position['quantity'] : 0);
+                $position['current_value'] = $currentPrice * $position['quantity'];
+                $position['gain'] = $position['current_value'] - $position['cost'];
+                $position['gain_percent'] = $position['cost'] > 0
+                    ? ($position['gain'] / $position['cost']) * 100
+                    : 0;
+                $totalCostBasis += $position['cost'];
+                $totalGain += $position['gain'];
+            }
+            unset($position);
+
+            $gainPercent = $totalCostBasis > 0 ? ($totalGain / $totalCostBasis) * 100 : 0;
+            $investingBalanceRaw = $totalCostBasis;
+            $investingBalanceFormatted = $user->formatAmount($investingBalanceRaw);
+            $investingChangeText = sprintf('%s (%+.2f%%)', $user->formatAmount($totalGain), $gainPercent);
+            $investingIsPositive = $totalGain >= 0;
+        } else {
+            $liveTradeInvested = LiveTrade::where('user_id', $user->id)
+                ->where('side', 'buy')
+                ->whereNotIn('status', ['cancelled'])
+                ->sum('amount');
+            $investingBalanceRaw = $liveTradeInvested;
+            $investingBalanceFormatted = $user->formatAmount($investingBalanceRaw);
+            $investingChangeText = $liveTradeInvested > 0 ? 'Total spent on orders' : 'No holdings yet';
+            $investingIsPositive = true;
+        }
+
+        return [
+            'holdings' => $holdings,
+            'balance_raw' => $investingBalanceRaw,
+            'balance_formatted' => $investingBalanceFormatted,
+            'change_text' => $investingChangeText,
+            'is_positive' => $investingIsPositive,
+        ];
+    }
+
     public function wallet()
     {
         $user = Auth::user();
+        $holdings = $user->holdings()->with('asset')->get();
+        $investingMetrics = $this->calculateInvestingMetrics($user, $holdings);
+        $totalInvested = $investingMetrics['balance_raw'];
         $portfolioTransactions = $user->holdingTransactions()
             ->with('asset')
             ->latest()
@@ -409,6 +455,7 @@ class UserController extends Controller
         return view('dashboard.nav.wallet', [
             'user' => $user,
             'recentMovements' => $recentMovements,
+            'totalInvested' => $totalInvested,
         ]);
     }
 

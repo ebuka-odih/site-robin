@@ -11,13 +11,13 @@
     <div class="grid gap-4 md:grid-cols-3">
         <div class="rounded-3xl border border-[#121212] bg-[#050505] p-5">
             <p class="text-xs text-gray-500">Wallet Balance</p>
-            <p class="text-3xl font-semibold">${{ number_format($user->wallet_balance, 2) }}</p>
+            <p class="text-3xl font-semibold">${{ number_format($user->balance ?? 0, 2) }}</p>
             <p class="text-xs text-green-400 mt-1">Available instantly</p>
         </div>
         <div class="rounded-3xl border border-[#121212] bg-[#050505] p-5">
-            <p class="text-xs text-gray-500">Trading Balance</p>
-            <p class="text-3xl font-semibold">${{ number_format($user->trading_balance, 2) }}</p>
-            <p class="text-xs text-gray-400 mt-1">Active positions not included</p>
+            <p class="text-xs text-gray-500">Investing</p>
+            <p class="text-3xl font-semibold">${{ number_format($totalInvested ?? 0, 2) }}</p>
+            <p class="text-xs text-gray-400 mt-1">Total amount invested</p>
         </div>
         <div class="rounded-3xl border border-[#121212] bg-[#050505] p-5">
             <p class="text-xs text-gray-500">Profit</p>
