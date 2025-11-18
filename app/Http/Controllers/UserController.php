@@ -545,20 +545,27 @@ class UserController extends Controller
 
     private function buildChangeSummary(User $user, string $type, float $currentValue, string $defaultText = null): array
     {
-        $since = Carbon::now()->subDay();
-        $range = $this->balanceHistoryService->getRangeChange($user, $type, $since);
+        $snapshots = $this->balanceHistoryService
+            ->getLatestSnapshots($user, $type, 2)
+            ->values();
 
-        if ($defaultText && !$range['start'] && !$range['end']) {
+        if ($snapshots->isEmpty()) {
             return [
-                'text' => $defaultText,
+                'text' => $defaultText ?? $user->formatAmount(0),
                 'is_positive' => true,
                 'delta' => 0,
             ];
         }
 
-        $startValue = $range['start'] ?: $currentValue;
-        $delta = $range['delta'];
-        $percent = $startValue != 0 ? ($delta / $startValue) * 100 : 0;
+        $currentSnapshot = $snapshots->first();
+        $previousSnapshot = $snapshots->count() > 1 ? $snapshots->get(1) : null;
+
+        $previousValue = $previousSnapshot
+            ? (float) ($previousSnapshot->new_amount ?? $previousSnapshot->previous_amount ?? 0)
+            : (float) ($currentSnapshot->previous_amount ?? 0);
+
+        $delta = $currentValue - $previousValue;
+        $percent = $previousValue != 0 ? ($delta / $previousValue) * 100 : ($delta == 0 ? 0 : 100);
 
         return [
             'text' => sprintf('%s (%+.2f%%)', $user->formatAmount($delta), $percent),
