@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('balance_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->string('type', 50);
             $table->decimal('previous_amount', 18, 2)->default(0);
             $table->decimal('new_amount', 18, 2);
