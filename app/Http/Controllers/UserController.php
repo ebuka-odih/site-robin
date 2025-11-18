@@ -453,19 +453,24 @@ class UserController extends Controller
                 $this->balanceHistoryService->getHistorySeries($user, $type, $startDate)
             );
 
-            if ($series->count() >= 1) {
+            if ($series->count() >= 2) {
                 $labels = $series->map(fn ($point) => $this->formatHistoryLabel(Carbon::parse($point['timestamp']), $range));
                 $data = $series->map(fn ($point) => round($point['value'], 2));
 
-                if ($data->count() === 1) {
-                    $labels->push($this->formatHistoryLabel(Carbon::now(), $range));
-                    $data->push(round($currentBalance, 2));
-                }
+                $minVal = $data->min();
+                $maxVal = $data->max();
+                $padding = max(($maxVal - $minVal) * 2, max($maxVal, $currentBalance) * 0.05);
+                $rangeMin = max($minVal - $padding, 0);
+                $rangeMax = $maxVal + $padding;
 
                 $history[$range] = [
                     'labels' => $labels->toArray(),
                     'data' => $data->toArray(),
                     'raw' => true,
+                    'range' => [
+                        'min' => $rangeMin,
+                        'max' => $rangeMax,
+                    ],
                 ];
             } else {
                 $history[$range] = $this->fallbackChartDataset($range, $currentBalance, $volatilityBase);
@@ -522,6 +527,7 @@ class UserController extends Controller
             'labels' => $labels,
             'data' => $series,
             'raw' => false,
+            'range' => null,
         ];
     }
 

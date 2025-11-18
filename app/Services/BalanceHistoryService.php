@@ -65,26 +65,49 @@ class BalanceHistoryService
 
         $series = collect();
 
-        $preceding = $user->balanceHistories()
-            ->where('type', $type)
-            ->where('created_at', '<', $start)
-            ->orderByDesc('created_at')
-            ->first();
+        foreach ($entries as $history) {
+            $timestamp = $history->created_at ?: now();
+            $previousValue = (float) ($history->previous_amount ?? $history->new_amount);
+            $newValue = (float) $history->new_amount;
 
-        if ($preceding) {
+            if ($series->isEmpty()) {
+                $series->push([
+                    'timestamp' => $timestamp->copy()->subSecond(),
+                    'value' => $previousValue,
+                ]);
+            } else {
+                $lastValue = $series->last()['value'] ?? $previousValue;
+                if ($lastValue !== $previousValue) {
+                    $series->push([
+                        'timestamp' => $timestamp->copy()->subSecond(),
+                        'value' => $previousValue,
+                    ]);
+                }
+            }
+
             $series->push([
-                'timestamp' => $start->copy(),
-                'value' => (float) $preceding->new_amount,
-                'previous_value' => (float) $preceding->new_amount,
+                'timestamp' => $timestamp,
+                'value' => $newValue,
             ]);
         }
 
-        foreach ($entries as $history) {
-            $series->push([
-                'timestamp' => $history->created_at,
-                'value' => (float) $history->new_amount,
-                'previous_value' => (float) ($history->previous_amount ?? $history->new_amount),
-            ]);
+        if ($series->isEmpty()) {
+            $latest = $user->balanceHistories()
+                ->where('type', $type)
+                ->latest('created_at')
+                ->first();
+
+            if ($latest) {
+                $value = (float) $latest->new_amount;
+                $series->push([
+                    'timestamp' => Carbon::now()->subMinutes(1),
+                    'value' => $value,
+                ]);
+                $series->push([
+                    'timestamp' => Carbon::now(),
+                    'value' => $value,
+                ]);
+            }
         }
 
         return $series->toArray();

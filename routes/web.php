@@ -427,7 +427,9 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
 
 });
 
-Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', function () {
+    return redirect()->route('user.dashboard');
+})->middleware(['auth'])->name('dashboard');
 
 // Debug route to check profit balance
 Route::get('/debug-profit', function() {

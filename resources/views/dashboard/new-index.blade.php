@@ -248,12 +248,13 @@
                 const dataSource = getDataSource();
                 const dataset = dataSource?.[range] || dataSource?.[defaultRange];
                 if (!dataset) {
-                    return { labels: [], data: [] };
+                    return { labels: [], data: [], range: null };
                 }
                 if (dataset?.raw) {
                     return {
                         labels: dataset.labels ?? [],
                         data: dataset.data ?? [],
+                        range: dataset.range ?? null,
                     };
                 }
                 const values = dataset.data;
@@ -262,12 +263,14 @@
                     return {
                         labels: dataset.labels ?? [],
                         data: [],
+                        range: null,
                     };
                 }
                 if (balance <= 0 || lastBase <= 0) {
                     return {
                         labels: dataset.labels,
                         data: values.map(() => 0),
+                        range: null,
                     };
                 }
                 const scale = balance / lastBase;
@@ -275,6 +278,7 @@
                 return {
                     labels: dataset.labels,
                     data: scaledValues,
+                    range: null,
                 };
             };
 
@@ -308,7 +312,11 @@
                             intersect: false,
                         },
                         scales: {
-                            y: { display: false },
+                            y: {
+                                display: false,
+                                min: initialData.range?.min,
+                                max: initialData.range?.max,
+                            },
                             x: {
                                 ticks: { color: '#404040', font: { size: 12 }},
                                 grid: { display: false }
@@ -324,6 +332,13 @@
                 const dataset = getScaledDataset(currentRange, currentChartBalance);
                 portfolioChart.data.labels = dataset.labels;
                 portfolioChart.data.datasets[0].data = dataset.data;
+                if (dataset.range) {
+                    portfolioChart.options.scales.y.min = dataset.range.min;
+                    portfolioChart.options.scales.y.max = dataset.range.max;
+                } else {
+                    delete portfolioChart.options.scales.y.min;
+                    delete portfolioChart.options.scales.y.max;
+                }
                 portfolioChart.update();
             };
 
