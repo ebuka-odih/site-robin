@@ -247,6 +247,7 @@ class UserController extends Controller
                 'balance' => $investingBalanceFormatted,
                 'change' => $investingChangeText,
                 'isPositive' => $investingIsPositive,
+                'raw_balance' => $investingBalanceRaw,
             ],
             [
                 'id' => 'pnl',
@@ -254,6 +255,7 @@ class UserController extends Controller
                 'balance' => $user->formatAmount($user->profit ?? 0),
                 'change' => ($user->profit ?? 0) >= 0 ? 'Total profit' : 'Total loss',
                 'isPositive' => ($user->profit ?? 0) >= 0,
+                'raw_balance' => (float) ($user->profit ?? 0),
             ],
             [
                 'id' => 'wallet',
@@ -261,6 +263,7 @@ class UserController extends Controller
                 'balance' => $user->formatAmount($user->balance ?? 0),
                 'change' => 'Available to invest',
                 'isPositive' => true,
+                'raw_balance' => (float) ($user->balance ?? 0),
             ],
         ];
 

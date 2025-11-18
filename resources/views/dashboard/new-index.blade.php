@@ -235,7 +235,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const chartCanvas = document.getElementById('portfolioChart');
-            const chartDataSets = {
+            const baseChartDataSets = {
                 '1D': {
                     labels: ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
                     data: [12.1, 12.12, 12.13, 12.15, 12.12, 12.1, 12.14]
@@ -264,20 +264,37 @@
 
             const defaultRange = '1M';
             let portfolioChart = null;
+            let currentRange = defaultRange;
+            const tabData = @json($accountTabs);
+            let currentChartBalance = tabData?.[0]?.raw_balance ?? 0;
+
+            const getScaledDataset = (range, balance) => {
+                const dataset = baseChartDataSets[range] || baseChartDataSets[defaultRange];
+                const values = dataset.data;
+                const lastBase = values[values.length - 1] || 1;
+                const scale = balance > 0 && lastBase > 0 ? balance / lastBase : 0;
+                const scaledValues = scale === 0
+                    ? values.map(() => 0)
+                    : values.map(v => Number((v * scale).toFixed(2)));
+                return {
+                    labels: dataset.labels,
+                    data: scaledValues,
+                };
+            };
 
             if (chartCanvas && typeof Chart !== 'undefined') {
                 const ctx = chartCanvas.getContext('2d');
                 const gradient = ctx.createLinearGradient(0, 0, 0, 400);
                 gradient.addColorStop(0, 'rgba(0, 255, 95, 0.3)');
                 gradient.addColorStop(1, 'rgba(0, 255, 95, 0)');
-
+                const initialData = getScaledDataset(defaultRange, currentChartBalance);
                 portfolioChart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: chartDataSets[defaultRange].labels,
+                        labels: initialData.labels,
                         datasets: [{
                             label: 'Portfolio Value',
-                            data: chartDataSets[defaultRange].data,
+                            data: initialData.data,
                             borderColor: '#00ff5f',
                             backgroundColor: 'transparent',
                             borderWidth: 3,
@@ -303,21 +320,23 @@
 
             const updateChartRange = (range) => {
                 if (!portfolioChart) return;
-                const dataset = chartDataSets[range] || chartDataSets[defaultRange];
+                currentRange = range || defaultRange;
+                const dataset = getScaledDataset(currentRange, currentChartBalance);
                 portfolioChart.data.labels = dataset.labels;
                 portfolioChart.data.datasets[0].data = dataset.data;
                 portfolioChart.update();
             };
 
-                    const tabs = document.querySelectorAll('#accountTabs button');
-                    const balanceEl = document.getElementById('activeBalance');
-                    const changeEl = document.getElementById('activeChange');
-                    const tabData = @json($accountTabs);
+            const tabs = document.querySelectorAll('#accountTabs button');
+            const balanceEl = document.getElementById('activeBalance');
+            const changeEl = document.getElementById('activeChange');
 
             tabs.forEach((tab) => {
                 tab.addEventListener('click', () => {
                     const currentId = tab.dataset.account;
                     const currentData = tabData.find(item => item.id === currentId) || tabData[0];
+                    currentChartBalance = currentData.raw_balance ?? 0;
+                    updateChartRange(currentRange);
 
                     // Update main balance display
                     if (balanceEl) {
