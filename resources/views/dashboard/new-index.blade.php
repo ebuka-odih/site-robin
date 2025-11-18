@@ -49,17 +49,12 @@
         </div>
 
         <div class="rounded-[32px] bg-black text-white shadow-[0_0_60px_rgba(0,0,0,0.45)]">
-            <div class="flex flex-col gap-4 px-6 pb-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm uppercase text-gray-400">Balance</p>
-                    <p id="activeBalance" class="text-4xl font-semibold">{{ data_get($investingTab, 'balance', '$0.00') }}</p>
-                    <p id="activeChange" class="text-sm {{ data_get($investingTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
-                        {{ data_get($investingTab, 'change', 'No data yet') }}
-                    </p>
-                </div>
-                <button class="self-start rounded-full bg-[#c6ff00] px-4 py-1.5 text-xs font-semibold text-black">
-                    Offers
-                </button>
+            <div class="flex flex-col gap-1 px-6 pb-2 pt-6">
+                <p class="text-sm uppercase text-gray-400">Balance</p>
+                <p id="activeBalance" class="text-4xl font-semibold">{{ data_get($investingTab, 'balance', '$0.00') }}</p>
+                <p id="activeChange" class="text-sm {{ data_get($investingTab, 'isPositive', true) ? 'text-green-400' : 'text-red-400' }}">
+                    {{ data_get($investingTab, 'change', 'No data yet') }}
+                </p>
             </div>
 
             <div class="relative h-72 w-full bg-black">
