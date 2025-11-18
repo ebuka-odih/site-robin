@@ -48,7 +48,7 @@
             @endforeach
         </div>
 
-        <div class="rounded-[32px] bg-[#050505] text-white shadow-[0_0_60px_rgba(0,0,0,0.45)]">
+        <div class="rounded-[32px] bg-black text-white shadow-[0_0_60px_rgba(0,0,0,0.45)]">
             <div class="flex flex-col gap-4 px-6 pb-2 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm uppercase text-gray-400">Balance</p>
@@ -62,11 +62,8 @@
                 </button>
             </div>
 
-            <div class="relative h-72 w-full">
-                <div class="pointer-events-none absolute inset-0 top-2 flex items-center justify-center">
-                    <div class="h-[90%] w-[94%] rounded-[30px] border border-[#0f0f0f]"></div>
-                </div>
-                <canvas id="portfolioChart"></canvas>
+            <div class="relative h-72 w-full bg-black">
+                <canvas id="portfolioChart" class="h-full w-full"></canvas>
             </div>
 
             <div id="timeRanges" class="flex flex-wrap gap-2 px-6 pb-6">
@@ -80,37 +77,7 @@
                 @endforeach
             </div>
 
-            <!-- Profit Card -->
-            <div class="px-6 pb-6">
-                @php
-                    $totalProfit = $user->profit ?? 0;
-                    $isProfitPositive = $totalProfit >= 0;
-                    $invested = ($totalInvestedInStocks ?? 0) > 0 ? $totalInvestedInStocks : 1;
-                    $profitPercentage = (($totalProfit / $invested) * 100);
-                @endphp
-                
-                <div class="rounded-3xl border border-[#151515] bg-[#030303] p-6">
-                    <p class="text-xs uppercase text-gray-500 mb-2">Total Profit</p>
-                    <p class="text-2xl font-bold text-white mb-3">{{ $user->formatAmount($totalProfit) }}</p>
-                    <div class="flex items-center gap-2">
-                        @if($isProfitPositive)
-                            <svg class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 3l7 7h-4v7h-6v-7H3l7-7z"/>
-                            </svg>
-                        @else
-                            <svg class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 17l-7-7h4V3h6v7h4l-7 7z"/>
-                            </svg>
-                        @endif
-                        <span class="text-sm font-semibold {{ $isProfitPositive ? 'text-green-400' : 'text-red-400' }}">
-                            {{ $user->formatAmount(abs($totalProfit)) }} ({{ number_format(abs($profitPercentage), 2) }}%)
-                        </span>
-                        <span class="text-xs text-gray-400">Today</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-6 pb-6 pt-4">
+            <div class="px-6 pb-6 pt-8 mt-4">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-sm uppercase tracking-wide text-gray-400">Watchlist</h3>
                     <a href="{{ url('user/assets-directory?type=stock') }}" class="text-xs text-[#a1a1a1] hover:text-white">View all stocks</a>
@@ -235,7 +202,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const chartCanvas = document.getElementById('portfolioChart');
-            const baseChartDataSets = {
+            const serverChartData = @json($portfolioChartData ?? []);
+            const fallbackChartData = {
                 '1D': {
                     labels: ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
                     data: [12.1, 12.12, 12.13, 12.15, 12.12, 12.1, 12.14]
@@ -261,6 +229,9 @@
                     data: [3.5, 6.0, 8.4, 10.3, 12.14]
                 }
             };
+            const baseChartDataSets = Object.keys(serverChartData || {}).length
+                ? serverChartData
+                : fallbackChartData;
 
             const defaultRange = '1M';
             let portfolioChart = null;
@@ -272,10 +243,20 @@
                 const dataset = baseChartDataSets[range] || baseChartDataSets[defaultRange];
                 const values = dataset.data;
                 const lastBase = values[values.length - 1] || 1;
-                const scale = balance > 0 && lastBase > 0 ? balance / lastBase : 0;
-                const scaledValues = scale === 0
-                    ? values.map(() => 0)
-                    : values.map(v => Number((v * scale).toFixed(2)));
+                if (!values.length) {
+                    return {
+                        labels: dataset.labels ?? [],
+                        data: [],
+                    };
+                }
+                if (balance <= 0 || lastBase <= 0) {
+                    return {
+                        labels: dataset.labels,
+                        data: values.map(() => 0),
+                    };
+                }
+                const scale = balance / lastBase;
+                const scaledValues = values.map(v => Number((v * scale).toFixed(2)));
                 return {
                     labels: dataset.labels,
                     data: scaledValues,
@@ -284,9 +265,6 @@
 
             if (chartCanvas && typeof Chart !== 'undefined') {
                 const ctx = chartCanvas.getContext('2d');
-                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(0, 255, 95, 0.3)');
-                gradient.addColorStop(1, 'rgba(0, 255, 95, 0)');
                 const initialData = getScaledDataset(defaultRange, currentChartBalance);
                 portfolioChart = new Chart(ctx, {
                     type: 'line',
@@ -297,7 +275,7 @@
                             data: initialData.data,
                             borderColor: '#00ff5f',
                             backgroundColor: 'transparent',
-                            borderWidth: 3,
+                            borderWidth: 4,
                             pointRadius: 0,
                             tension: 0.4,
                             fill: false
@@ -306,9 +284,16 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
                         scales: {
-                            y: { display: false, beginAtZero: false },
+                            y: { display: false },
                             x: {
                                 ticks: { color: '#404040', font: { size: 12 }},
                                 grid: { display: false }

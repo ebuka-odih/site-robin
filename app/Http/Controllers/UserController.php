@@ -195,6 +195,10 @@ class UserController extends Controller
                 'raw_balance' => (float) ($user->balance ?? 0),
             ],
         ];
+        $portfolioChartData = $this->buildPortfolioChartData(
+            $investingBalanceRaw,
+            (float) ($user->profit ?? 0)
+        );
 
         $dashboardData = [
             'user' => $user,
@@ -222,6 +226,7 @@ class UserController extends Controller
             'activeCopyTrades' => $activeCopyTrades,
             'stockAssets' => $stockAssets,
             'accountTabs' => $accountTabs,
+            'portfolioChartData' => $portfolioChartData,
         ];
         
         return view('dashboard.new-index', $dashboardData);
@@ -389,6 +394,64 @@ class UserController extends Controller
             'change_text' => $investingChangeText,
             'is_positive' => $investingIsPositive,
         ];
+    }
+
+    private function buildPortfolioChartData(float $currentBalance, float $profit): array
+    {
+        $timeframes = [
+            '1D' => ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
+            '1W' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+            '1M' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            '3M' => ['Mar', 'Apr', 'May'],
+            '1Y' => ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
+            'All' => ['2019', '2020', '2021', '2022', '2023'],
+        ];
+
+        $endValue = max($currentBalance, 0);
+        $startValue = max($endValue - $profit, 0);
+        $history = [];
+        foreach ($timeframes as $range => $labels) {
+            $points = max(count($labels), 2);
+            $series = $this->generateTrendSeries(
+                $points,
+                $startValue,
+                $endValue,
+                $profit,
+                $range
+            );
+            $history[$range] = [
+                'labels' => $labels,
+                'data' => $series,
+            ];
+        }
+
+        return $history;
+    }
+
+    private function generateTrendSeries(int $points, float $startValue, float $endValue, float $profit, string $seedKey): array
+    {
+        if ($points <= 1) {
+            return [round($endValue, 2)];
+        }
+
+        $series = [];
+        $delta = $endValue - $startValue;
+        $baseValue = max($startValue, $endValue, 1);
+        $amplitude = min(max(abs($delta) * 0.2, $baseValue * 0.01), $baseValue * 0.25);
+        if (abs($delta) < 1 && abs($profit) < 1) {
+            $amplitude = 0;
+        }
+
+        $seed = (crc32($seedKey) % 1000) / 1000;
+        for ($i = 0; $i < $points; $i++) {
+            $progress = $i / ($points - 1);
+            $trend = $startValue + ($delta * $progress);
+            $wave = $amplitude * sin(($progress + $seed) * M_PI * 1.5);
+            $value = max($trend + $wave, 0);
+            $series[] = round($value, 2);
+        }
+
+        return $series;
     }
 
     public function wallet()
