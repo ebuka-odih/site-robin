@@ -61,7 +61,7 @@
                 <canvas id="portfolioChart" class="h-full w-full"></canvas>
             </div>
 
-            <div id="timeRanges" class="flex flex-wrap gap-2 px-6 pb-6">
+            <div id="timeRanges" class="flex flex-wrap gap-2 px-6 pb-4">
                 @foreach ($timeRanges as $index => $range)
                     <button
                         data-range="{{ $range }}"
@@ -70,6 +70,10 @@
                         {{ $range }}
                     </button>
                 @endforeach
+            </div>
+            <div class="mx-6 mb-6 rounded-2xl border border-[#111111] bg-[#030303] px-5 py-4 flex items-center justify-between text-sm">
+                <p class="text-gray-400">Buying Power</p>
+                <p class="text-white font-semibold">{{ $user->formatAmount($user->trading_balance ?? 0) }}</p>
             </div>
 
             <div class="px-6 pb-6 pt-8 mt-4">
