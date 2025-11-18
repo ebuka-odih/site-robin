@@ -22,54 +22,61 @@
         </div>
     </div>
 
-    <div class="space-y-6 rounded-[32px] bg-[#060606] p-6 shadow-[0_0_80px_rgba(0,0,0,0.65)]">
-        <div>
-            <div class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-gray-500">
-                <span class="text-[#08f58d]">Stock</span>
-                <span>∙</span>
-                <span>{{ strtoupper($asset['symbol'] ?? $asset->symbol) }}</span>
-            </div>
-            <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ is_array($asset) ? $asset['name'] : $asset->name }}</h1>
-            <div class="mt-2 flex items-end gap-4">
-                <p class="text-3xl font-semibold">${{ number_format($asset['current_price'] ?? $asset->current_price, 2) }}</p>
-                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $isPositive ? 'bg-[#0f2b14] text-[#00ff5f]' : 'bg-[#2b0f0f] text-[#ff4d4d]' }}">
-                    {{ $isPositive ? '+' : '' }}{{ number_format($change, 2) }}% Today
-                </span>
-            </div>
-        </div>
-
-        <div class="rounded-[28px] border border-[#101010] bg-black/80 p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="text-xs text-gray-400">
-                    Swipe or tap chart to explore
+    <div class="grid gap-8 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-6">
+            <div>
+                <div class="flex items-center gap-2 text-[11px] uppercase tracking-wide text-gray-500">
+                    <span class="text-[#08f58d]">Stock</span>
+                    <span>∙</span>
+                    <span>{{ strtoupper($asset['symbol'] ?? $asset->symbol) }}</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button class="rounded-full border border-[#1fff9c] px-3 py-1 text-xs text-[#1fff9c]">Indicators</button>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight">{{ is_array($asset) ? $asset['name'] : $asset->name }}</h1>
+                <div class="mt-4 flex flex-wrap items-baseline gap-4">
+                    <p class="text-4xl font-semibold">${{ number_format($asset['current_price'] ?? $asset->current_price, 2) }}</p>
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $isPositive ? 'bg-[#0f2b14] text-[#00ff5f]' : 'bg-[#2b0f0f] text-[#ff4d4d]' }}">
+                        {{ $isPositive ? '+' : '' }}{{ number_format($change, 2) }}% Today
+                    </span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="rounded-[32px] bg-black min-h-[520px] overflow-hidden">
+                    <div id="tvStockChart" class="h-[520px] w-full"></div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between text-xs text-gray-400">
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($timeRanges as $range)
+                            @php
+                                $resolutionMap = [
+                                    '1D' => '60',
+                                    '1W' => '240',
+                                    '1M' => 'D',
+                                    '3M' => 'W',
+                                    '1Y' => 'W',
+                                    'All' => 'M',
+                                ];
+                            @endphp
+                            <button class="tv-range-btn rounded-full {{ $loop->first ? 'bg-[#00ff5f] text-black' : 'bg-[#0f0f0f] text-gray-300' }} px-4 py-1 text-xs font-semibold"
+                                    data-range="{{ $range }}" data-resolution="{{ $resolutionMap[$range] ?? 'D' }}">
+                                {{ $range }}
+                            </button>
+                        @endforeach
+                    </div>
                     <a href="{{ route('user.advancedTrading.trade', ['asset_type' => $assetType, 'symbol' => is_array($asset) ? $asset['symbol'] : $asset->symbol]) }}"
-                       class="rounded-full border border-[#222] px-3 py-1 text-xs text-gray-300 hover:text-white hover:border-[#1fff9c]/30 transition">
+                       class="rounded-full border border-[#222] px-3 py-1 text-gray-300 hover:text-white hover:border-[#1fff9c]/30 transition">
                         Advanced
                     </a>
                 </div>
-            </div>
-
-            <div class="mt-4 h-72 w-full rounded-[24px] bg-gradient-to-b from-[#081408] to-[#010101] p-1.5">
-                <div class="relative h-full w-full rounded-[22px] border border-[#0a0a0a]/60 bg-black/90 px-2 pb-2 pt-6">
+                {{--
+                <div class="relative w-full rounded-[32px] bg-black min-h-[520px] overflow-hidden">
                     <div class="absolute left-6 top-4 text-xs text-gray-500">Price</div>
-                    <canvas id="stockTradingChart"></canvas>
-                    <div class="pointer-events-none absolute inset-0 rounded-[22px] border border-[#050505]/50"></div>
+                    <canvas id="stockTradingChart" class="h-full w-full"></canvas>
                 </div>
-            </div>
-
-            <div class="mt-4 flex flex-wrap gap-2">
-                @foreach ($timeRanges as $range)
-                    <button class="time-range-btn rounded-full {{ $loop->first ? 'bg-[#00ff5f] text-black' : 'bg-[#0f0f0f] text-gray-300' }} px-4 py-1 text-xs font-semibold" data-range="{{ $range }}">
-                        {{ $range }}
-                    </button>
-                @endforeach
+                --}}
             </div>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-4">
             <div class="rounded-3xl border border-[#111] bg-black p-4">
                 <div class="mb-4 flex items-center justify-between">
                     <span class="text-sm text-gray-400">Quick Trade</span>
@@ -118,6 +125,7 @@
                 </div>
             </div>
         </div>
+    </div>
 
         <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 space-y-4">
             <div class="flex items-center justify-between">
@@ -235,67 +243,14 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const ctx = document.getElementById('stockTradingChart').getContext('2d');
-            const gradient = ctx.createLinearGradient(0, 0, 0, 250);
-            gradient.addColorStop(0, 'rgba(0, 255, 95, 0.4)');
-            gradient.addColorStop(1, 'rgba(0, 255, 95, 0)');
-
-            const timeRangeData = {
-                '1D': [110, 112, 111, 115, 117, 113, 118, 120],
-                '1W': [100, 103, 105, 108, 112, 114, 117, 119],
-                '1M': [95, 97, 102, 106, 110, 115, 118, 122],
-                '3M': [90, 92, 98, 105, 110, 115, 123, 128],
-                '1Y': [60, 70, 80, 95, 105, 115, 118, 125],
-                'All': [40, 60, 80, 100, 120, 135, 150, 165],
-            };
-
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: timeRangeData['1D'].map((_, i) => i + 1),
-                    datasets: [{
-                        data: timeRangeData['1D'],
-                        borderColor: '#00ff5f',
-                        backgroundColor: gradient,
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        pointBackgroundColor: '#00ff5f',
-                        pointBorderColor: '#001902',
-                        pointHoverRadius: 4,
-                        fill: true,
-                        tension: 0.4,
-                    }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: { display: false },
-                    },
-                },
-            });
-
-            document.querySelectorAll('.time-range-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    document.querySelectorAll('.time-range-btn').forEach(btn => {
-                        btn.classList.remove('bg-[#00ff5f]', 'text-black');
-                        btn.classList.add('bg-[#0f0f0f]', 'text-gray-300');
-                    });
-                    this.classList.add('bg-[#00ff5f]', 'text-black');
-                    this.classList.remove('bg-[#0f0f0f]', 'text-gray-300');
-
-                    const range = this.dataset.range;
-                    chart.data.labels = timeRangeData[range].map((_, i) => i + 1);
-                    chart.data.datasets[0].data = timeRangeData[range];
-                    chart.update();
-                });
-            });
-
+            // Original Chart.js setup retained for reference.
+        });
+    </script> --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
             const buyModal = document.getElementById('buyModal');
             const openBuy = document.getElementById('openBuyModal');
             const closeBuy = document.getElementById('closeBuyModal');
@@ -437,5 +392,83 @@
                 window.location.reload();
             });
         });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initStockTradingViewWidget('{{ is_array($asset) ? $asset["symbol"] : $asset->symbol }}', '{{ $assetType }}');
+            initTradingViewRangeButtons();
+        });
+
+        function initStockTradingViewWidget(symbol, assetType) {
+            const containerId = 'tvStockChart';
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            window.stockTvConfig = window.stockTvConfig || {};
+            window.stockTvConfig.symbol = symbol;
+            window.stockTvConfig.assetType = assetType;
+            window.stockTvConfig.resolution = window.stockTvConfig.resolution || '60';
+
+            const renderWidget = () => {
+                const tvSymbol = getTradingViewSymbol(window.stockTvConfig.symbol, window.stockTvConfig.assetType);
+                container.innerHTML = '';
+                new TradingView.widget({
+                    autosize: true,
+                    symbol: tvSymbol,
+                    interval: window.stockTvConfig.resolution,
+                    timezone: 'Etc/UTC',
+                    theme: 'dark',
+                    style: '9',
+                    container_id: containerId,
+                    hide_top_toolbar: true,
+                    hide_legend: true,
+                    allow_symbol_change: false,
+                    backgroundColor: 'rgba(0,0,0,1)',
+                    gridColor: 'rgba(0,0,0,0)',
+                    locale: 'en'
+                });
+            };
+
+            if (typeof TradingView === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://s3.tradingview.com/tv.js';
+                script.onload = renderWidget;
+                document.body.appendChild(script);
+            } else {
+                renderWidget();
+            }
+        }
+
+        function initTradingViewRangeButtons() {
+            const buttons = document.querySelectorAll('.tv-range-btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('bg-[#00ff5f]', 'text-black');
+                        btn.classList.add('bg-[#0f0f0f]', 'text-gray-300');
+                    });
+                    button.classList.add('bg-[#00ff5f]', 'text-black');
+                    button.classList.remove('bg-[#0f0f0f]', 'text-gray-300');
+
+                    const resolution = button.dataset.resolution || 'D';
+                    if (window.stockTvConfig) {
+                        window.stockTvConfig.resolution = resolution;
+                        initStockTradingViewWidget(window.stockTvConfig.symbol, window.stockTvConfig.assetType);
+                    }
+                });
+            });
+        }
+
+        function getTradingViewSymbol(symbol, assetType) {
+            let tvSymbol = symbol.toUpperCase();
+            if (assetType === 'stock') {
+                tvSymbol = `NASDAQ:${tvSymbol}`;
+            } else if (assetType === 'crypto') {
+                tvSymbol = `BINANCE:${tvSymbol}USD`;
+            } else if (assetType === 'forex') {
+                tvSymbol = `FX:${tvSymbol}`;
+            }
+            return tvSymbol;
+        }
     </script>
 @endpush
