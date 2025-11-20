@@ -16,7 +16,7 @@ class AdminSeeder extends Seeder
      */
     public function run()
     {
-        $admin = User::where('email', '=', 'admin@site.com')->first();
+        $admin = User::where('email', '=', 'admin@elitealgox.com')->first();
         if($admin === null){
             User::create([
                 'id' => Str::uuid(),
@@ -30,7 +30,7 @@ class AdminSeeder extends Seeder
                 'holding_balance' => 1000000,
                 'staking_balance' => 300000,
                 'profit' => 580000,
-                'email' => 'admin@site.com',
+                'email' => 'admin@elitealgox.com',
                 'email_verified_at' => \Carbon\Carbon::now(),
                 'password' => Hash::make('ADMINPASS123'),
                 'currency' => 'USD',
