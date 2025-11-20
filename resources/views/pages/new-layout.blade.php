@@ -32,7 +32,7 @@
             <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
                 <div class="flex items-center gap-10">
                     <a href="{{ route('index') }}" class="text-2xl font-semibold tracking-tight text-[#170041]">
-                        {{ config('app.name', '{{ config('app.name') }}') }}
+                        {{ config('app.name', 'Laravel') }}
                     </a>
                     <div class="hidden items-center gap-5 text-sm text-[#190c42] md:flex">
                         <a href="#" class="rounded-full bg-[#f0edff] px-4 py-1.5 font-semibold text-[#5c28ff] hover:bg-[#e4dcff] transition-colors">Personal</a>
