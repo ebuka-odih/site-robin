@@ -259,19 +259,19 @@
             @foreach ([
                 [
                     'question' => 'How does investing with different currencies work?',
-                    'answer' => 'Building a global portfolio is important, and we want to make it as easy as possible to do that. Lightyear\'s multi-currency investment accounts mean you can invest and hold money in USD, GBP and EUR. So whether you\'re investing in local stocks or US giants, we\'ve got you covered. This way, you don\'t have to be constantly converting your money between currencies - which is subject to FX fees.'
+                    'answer' => 'Building a global portfolio is important, and we want to make it as easy as possible to do that. {{ config('app.name') }}\'s multi-currency investment accounts mean you can invest and hold money in USD, GBP and EUR. So whether you\'re investing in local stocks or US giants, we\'ve got you covered. This way, you don\'t have to be constantly converting your money between currencies - which is subject to FX fees.'
                 ],
                 [
                     'question' => 'Can I move stocks over from another provider?',
-                    'answer' => 'If your current broker supports transfers out, we can help you do it. There\'s a longer answer on our help centre with the links and a step-by-step process. But in short, we can help you transfer whole shares (above a value of $/£/€ 1000) over to Lightyear.'
+                    'answer' => 'If your current broker supports transfers out, we can help you do it. There\'s a longer answer on our help centre with the links and a step-by-step process. But in short, we can help you transfer whole shares (above a value of $/£/€ 1000) over to {{ config('app.name') }}.'
                 ],
                 [
                     'question' => 'How are my assets protected?',
-                    'answer' => 'Trusting us with your investments is not something we take for granted. Lightyear Europe AS is a licensed investment firm and as such is bound by strict regulatory obligations in how we handle and protect your assets. We do this via a process known as safeguarding. You can find full details about how we safeguard in our help centre. All Lightyear customers have their assets covered up to the amount of 20,000 EUR by the Estonian Investor Protection Sectoral Fund. Read more about this fund here. This protection covers all accounts regardless of the owner\'s residency country.'
+                    'answer' => 'Trusting us with your investments is not something we take for granted. {{ config('app.name') }} Europe AS is a licensed investment firm and as such is bound by strict regulatory obligations in how we handle and protect your assets. We do this via a process known as safeguarding. You can find full details about how we safeguard in our help centre. All {{ config('app.name') }} customers have their assets covered up to the amount of 20,000 EUR by the Estonian Investor Protection Sectoral Fund. Read more about this fund here. This protection covers all accounts regardless of the owner\'s residency country.'
                 ],
                 [
                     'question' => 'Can I request new stocks?',
-                    'answer' => 'Yes! We\'re always looking to expand our universe. If there\'s a stock you\'d like to see on Lightyear, let us know through our support channels and we\'ll do our best to add it to our platform.'
+                    'answer' => 'Yes! We\'re always looking to expand our universe. If there\'s a stock you\'d like to see on {{ config('app.name') }}, let us know through our support channels and we\'ll do our best to add it to our platform.'
                 ]
             ] as $index => $faq)
             <details class="group rounded-2xl border border-[#f0edff] bg-white">

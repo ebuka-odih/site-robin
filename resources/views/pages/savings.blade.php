@@ -5,7 +5,7 @@
     <!-- Hero Section -->
     <div class="text-center space-y-8">
         <div class="space-y-4">
-            <p class="text-xs uppercase tracking-[0.4em] text-[#05c46b]">Lightyear Savings</p>
+            <p class="text-xs uppercase tracking-[0.4em] text-[#05c46b]">{{ config('app.name') }} Savings</p>
             <h1 class="text-5xl font-semibold leading-tight text-[#140a33] md:text-6xl lg:text-7xl">
                 Earn high interest<br>on your savings
             </h1>
@@ -118,7 +118,7 @@
         </div>
 
         <div class="grid gap-6 md:grid-cols-2">
-            <!-- Lightyear Savings -->
+            <!-- {{ config('app.name') }} Savings -->
             <div class="rounded-3xl bg-gradient-to-br from-[#05c46b]/10 to-[#04b35f]/5 border-2 border-[#05c46b]/30 p-8">
                 <div class="mb-6 inline-flex rounded-full bg-[#05c46b] px-4 py-1 text-xs font-semibold text-white">
                     {{ config('app.name') }} Savings

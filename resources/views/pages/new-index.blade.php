@@ -22,7 +22,7 @@
                 Invest smarter. Go further.
             </h1>
             <p class="text-lg text-[#6b628d] md:text-xl max-w-3xl mx-auto font-normal">
-                The multi-award winning investment platform that pays up to 1.9% APY interest. Enhanced with Lightyear AI.
+                The multi-award winning investment platform that pays up to 1.9% APY interest. Enhanced with {{ config('app.name') }} AI.
             </p>
         </div>
         <div class="flex justify-center">
@@ -38,7 +38,7 @@
             <div class="text-center space-y-4 text-white md:text-left">
                 <p class="text-xs uppercase tracking-[0.4em] text-[#8f7dfd]">In-App Experience</p>
                 <h2 class="text-4xl font-semibold leading-tight">All your investing tools in one intuitive screen.</h2>
-                <p class="max-w-md text-sm text-white/70">Track performance, rebalance with a tap, and move cash instantly between accounts. Lightyear’s mobile app mirrors the same seamless workflow as the desktop dashboard.</p>
+                <p class="max-w-md text-sm text-white/70">Track performance, rebalance with a tap, and move cash instantly between accounts. {{ config('app.name') }}’s mobile app mirrors the same seamless workflow as the desktop dashboard.</p>
             </div>
             <div class="relative flex h-[520px] w-full items-center justify-center md:h-[640px]">
                 <div class="absolute inset-0 rounded-full blur-[120px] bg-gradient-to-b from-[#6f4bff] via-transparent to-transparent opacity-80"></div>
@@ -104,7 +104,7 @@
     </div>
 
     <div class="space-y-8 text-center text-[#140a33]">
-        <p class="text-xs uppercase tracking-[0.4em] text-[#8f7dfd]">Lightyear Savings</p>
+        <p class="text-xs uppercase tracking-[0.4em] text-[#8f7dfd]">{{ config('app.name') }} Savings</p>
         <div class="space-y-3">
             <h2 class="text-4xl font-semibold">Earn high interest</h2>
             <p class="text-[#6b628d]">Put your money to work in our easy access, high yield Savings.</p>
@@ -200,7 +200,7 @@
     </div>
 
     <div class="rounded-[40px] bg-white p-10 text-center shadow-lg shadow-[#a48dff]/20">
-        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#05c46b]">Lightyear Savings</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#05c46b]">{{ config('app.name') }} Savings</p>
         <h2 class="mt-3 text-3xl font-semibold text-[#140a33]">Earn high interest</h2>
         <p class="mt-2 text-lg text-[#6b628d]">Put your money to work in our easy access, high yield savings.</p>
         <div class="mt-8 text-6xl font-semibold text-[#05c46b]">1.91% <span class="text-2xl align-top text-[#6b628d]">APY</span></div>
