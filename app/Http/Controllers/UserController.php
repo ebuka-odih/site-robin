@@ -7,6 +7,7 @@ use App\Models\Trade;
 use App\Models\LiveTrade;
 use App\Models\TradePair;
 use App\Models\User;
+use App\Models\BotTrade;
 use App\Services\BalanceHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -311,6 +312,37 @@ class UserController extends Controller
                 return [strtoupper($holding->asset->symbol) => $holding];
             });
         return view('dashboard.nav.trade', compact('user', 'stockAssets', 'cryptoAssets', 'tradeHistory', 'holdingsBySymbol'));
+    }
+
+    public function botTradingHub()
+    {
+        $user = Auth::user();
+        $bots = $user->botTradings()
+            ->with(['trades' => function ($query) {
+                $query->latest()->limit(5);
+            }])
+            ->latest()
+            ->get();
+
+        $stats = [
+            'total_bots' => $bots->count(),
+            'active_bots' => $bots->where('status', 'active')->count(),
+            'paused_bots' => $bots->where('status', 'paused')->count(),
+            'stopped_bots' => $bots->where('status', 'stopped')->count(),
+            'total_profit' => $bots->sum('total_profit'),
+            'total_invested' => $bots->sum('total_invested'),
+            'total_participants' => $bots->sum('participants_count'),
+        ];
+
+        $recentTrades = $bots->isEmpty()
+            ? collect()
+            : BotTrade::with('botTrading')
+                ->whereIn('bot_trading_id', $bots->pluck('id'))
+                ->latest()
+                ->take(8)
+                ->get();
+
+        return view('dashboard.nav.bot-trading', compact('user', 'bots', 'stats', 'recentTrades'));
     }
 
     public function assetsDirectory(Request $request)

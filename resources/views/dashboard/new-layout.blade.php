@@ -273,6 +273,15 @@
                     </div>
                     <span>Copy</span>
                 </a>
+                {{-- Bot trading entry hidden for now but kept for future enablement --}}
+                {{-- <a href="{{ route('user.nav.bot-trading') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.bot-trading') ? 'text-white' : 'hover:text-white' }}">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.bot-trading') ? 'border border-[#14b8a6] text-[#14b8a6]' : '' }}">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a7 7 0 00-7 7v4H4a2 2 0 000 4h1a7 7 0 0014 0h1a2 2 0 000-4h-1V9a7 7 0 00-7-7zm0 0v4m-6 7h12" />
+                        </svg>
+                    </div>
+                    <span>Bot</span>
+                </a> --}}
                 <a href="{{ route('user.nav.wallet') }}" class="group flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1 {{ request()->routeIs('user.nav.wallet') ? 'text-white' : 'hover:text-white' }}">
                     <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f] {{ request()->routeIs('user.nav.wallet') ? 'border border-[#facc15] text-[#facc15]' : '' }}">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -227,6 +227,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     Route::get('assets-directory', [UserController::class, 'assetsDirectory'])->name('nav.assets');
     Route::get('wallet', [UserController::class, 'wallet'])->name('nav.wallet');
     Route::get('profile-overview', [UserController::class, 'profileOverview'])->name('nav.profile');
+    Route::get('bot-trading-hub', [UserController::class, 'botTradingHub'])->name('nav.bot-trading');
     Route::get('profile', [UserController::class, 'profile'])->name('profile');
     Route::post('update/profile/{id}', [UserController::class, 'updateProfile'])->name('updateProfile');
     Route::post('update/password/', [UserController::class, 'updatePassword'])->name('updatePassword');
@@ -387,6 +388,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     Route::get('bot-trading', [BotTradingController::class, 'index'])->name('botTrading.index');
     Route::get('bot-trading/create', [BotTradingController::class, 'create'])->name('botTrading.create');
     Route::post('bot-trading', [BotTradingController::class, 'store'])->name('botTrading.store');
+    Route::post('bot-trading/templates/{template}/clone', [BotTradingController::class, 'cloneTemplate'])->name('botTrading.cloneTemplate');
     Route::get('bot-trading/{bot}', [BotTradingController::class, 'show'])->name('botTrading.show');
     Route::get('bot-trading/{bot}/edit', [BotTradingController::class, 'edit'])->name('botTrading.edit');
     Route::put('bot-trading/{bot}', [BotTradingController::class, 'update'])->name('botTrading.update');

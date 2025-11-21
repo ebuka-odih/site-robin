@@ -157,6 +157,9 @@
                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                     Success: {{ $bot->total_trades > 0 ? number_format($bot->success_rate, 1) : '0.0' }}%
                                 </div>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    Users in Bot: {{ number_format($bot->participants_count ?? 0) }}
+                                </div>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

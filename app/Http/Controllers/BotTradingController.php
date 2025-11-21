@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BotTrading;
 use App\Models\BotTrade;
+use App\Models\BotTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -39,8 +40,9 @@ class BotTradingController extends Controller
     {
         $tradingPairs = $this->getAvailableTradingPairs();
         $strategies = $this->getAvailableStrategies();
+        $templates = BotTemplate::where('is_active', true)->latest()->take(12)->get();
         
-        return view('dashboard.bot-trading.create', compact('tradingPairs', 'strategies'));
+        return view('dashboard.bot-trading.create', compact('tradingPairs', 'strategies', 'templates'));
     }
 
     /**
@@ -157,6 +159,43 @@ class BotTradingController extends Controller
                 'success' => false,
                 'message' => 'Database error: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function cloneTemplate(Request $request, BotTemplate $template)
+    {
+        $user = Auth::user();
+
+        if (($template->max_investment ?? 0) > ($user->trading_balance ?? 0)) {
+            return back()->with('error', 'Insufficient trading balance to copy this bot.');
+        }
+
+        try {
+            $attributes = $template->toBotAttributes($user->id);
+            $attributes['base_asset'] = strtoupper($attributes['base_asset']);
+            $attributes['quote_asset'] = strtoupper($attributes['quote_asset']);
+
+            $bot = BotTrading::create($attributes);
+
+            $user->createNotification(
+                'bot_cloned',
+                'Bot Ready',
+                "We set up {$template->name} for you. It is live and ready to trade.",
+                [
+                    'bot_template_id' => $template->id,
+                    'bot_id' => $bot->id,
+                ]
+            );
+
+            return redirect()->route('user.botTrading.show', $bot)->with('success', 'Bot created from template!');
+        } catch (\Throwable $e) {
+            \Log::error('Failed to clone bot template', [
+                'template_id' => $template->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Unable to copy template at the moment.');
         }
     }
 

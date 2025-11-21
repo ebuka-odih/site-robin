@@ -26,6 +26,7 @@ class CopyTraderController extends Controller
             'profit_share' => 'nullable|string',
             'win' => 'nullable|string',
             'loss' => 'nullable|string',
+            'copiers_count' => 'nullable|integer|min:0|max:1000000',
         ]);
 
         if ($request->hasFile('avatar')) {
@@ -41,6 +42,7 @@ class CopyTraderController extends Controller
         $trader->profit_share = $validatedData['profit_share'];
         $trader->win = $validatedData['win'];
         $trader->loss = $validatedData['loss'];
+        $trader->copiers_count = $validatedData['copiers_count'] ?? 0;
         $trader->save();
 
         return redirect()->back()->with('success', "Trader Created Successfully");
@@ -61,6 +63,7 @@ class CopyTraderController extends Controller
             'profit_share' => 'nullable|string',
             'win' => 'nullable|string',
             'loss' => 'nullable|string',
+            'copiers_count' => 'nullable|integer|min:0|max:1000000',
         ]);
 
         $trader = CopyTrader::findOrFail($id);
@@ -80,6 +83,7 @@ class CopyTraderController extends Controller
         $trader->profit_share = $validatedData['profit_share'];
         $trader->win = $validatedData['win'];
         $trader->loss = $validatedData['loss'];
+        $trader->copiers_count = $validatedData['copiers_count'] ?? $trader->copiers_count;
         $trader->save();
 
         return redirect()->back()->with('success', "Trader Updated Successfully");

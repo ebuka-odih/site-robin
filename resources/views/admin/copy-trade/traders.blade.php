@@ -68,6 +68,9 @@
                     <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
                       Profit Share
                     </th>
+                    <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
+                      Copying Users
+                    </th>
                    <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
                       Win
                     </th>
@@ -103,6 +106,9 @@
                     </td>
                     <td class="text-gray-500 dark:text-gray-400">
                       <span>{{ $item->profit_share ?? '' }}%</span>
+                    </td>
+                    <td class="text-gray-500 dark:text-gray-400">
+                      <span>{{ number_format($item->copiers_count ?? 0) }}</span>
                     </td>
                    <td class="text-gray-500 dark:text-gray-400">
                       <span>{{ $item->win ?? '' }}</span>
@@ -211,6 +217,11 @@
                                             <input type="text" name="loss" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder=""
                                                    value="{{ old('loss', $item->loss ?? '') }}">
                                         </div>
+                                        <div class="col-span-1 sm:col-span-1">
+                                            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Copying Users</label>
+                                            <input type="number" min="0" name="copiers_count" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                                   value="{{ old('copiers_count', $item->copiers_count ?? 0) }}" placeholder="e.g. 250">
+                                        </div>
                                     </div>
                                     <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                         <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
@@ -292,6 +303,10 @@
                     <div class="col-span-1 sm:col-span-1">
                         <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Loss</label>
                         <input type="text" name="loss" id="price" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="" required="">
+                    </div>
+                    <div class="col-span-1 sm:col-span-1">
+                        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Copying Users</label>
+                        <input type="number" min="0" name="copiers_count" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="e.g. 500">
                     </div>
                 </div>
                 <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">

@@ -155,14 +155,17 @@ class CopyTradingController extends Controller
         // Calculate ROI based on actual PnL
         $roi = $copiedTrade->amount > 0 ? ($pnl / $copiedTrade->amount) * 100 : 0;
 
+        $user = Auth::user();
+
         return view('dashboard.copy-trade-detail', compact(
-            'copiedTrade', 
-            'trader', 
-            'tradeCount', 
-            'wins', 
-            'losses', 
-            'pnl', 
-            'roi'
+            'copiedTrade',
+            'trader',
+            'tradeCount',
+            'wins',
+            'losses',
+            'pnl',
+            'roi',
+            'user'
         ));
     }
 

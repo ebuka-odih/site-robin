@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\TransactionController as AdminTransactionControll
 use App\Http\Controllers\Admin\SignalController as AdminSignalController;
 use App\Http\Controllers\Admin\CopiedTradeController;
 use App\Http\Controllers\Admin\BotTradingController;
+use App\Http\Controllers\Admin\BotTemplateController;
 use App\Http\Controllers\Admin\MiningController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\AiTraderPlanController;
@@ -68,6 +69,9 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
     Route::post('/bot-trading/{bot}/start', [BotTradingController::class, 'start'])->name('bot-trading.start');
     Route::post('/bot-trading/{bot}/stop', [BotTradingController::class, 'stop'])->name('bot-trading.stop');
     Route::post('/bot-trading/{bot}/execute', [BotTradingController::class, 'execute'])->name('bot-trading.execute');
+
+    // Bot templates for quick cloning
+    Route::resource('/bot-templates', BotTemplateController::class)->names('bot-templates');
     Route::post('/bot-trading/{bot}/create-trade', [BotTradingController::class, 'storeTrade'])->name('bot-trading.create-trade');
     Route::post('/bot-trading/{bot}/edit-pnl', [BotTradingController::class, 'editPnl'])->name('bot-trading.edit-pnl');
     Route::post('/bot-trading/trade/{trade}/edit-pnl', [BotTradingController::class, 'editTradePnl'])->name('bot-trading.edit-trade-pnl');

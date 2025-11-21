@@ -254,6 +254,10 @@
                                     <span class="text-sm text-gray-500 dark:text-gray-400">Created:</span>
                                     <span class="text-sm font-medium text-gray-900 dark:text-white">{{ $bot->created_at ? $bot->created_at->format('M d, Y H:i') : 'Unknown' }}</span>
                                 </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-sm text-gray-500 dark:text-gray-400">Users in Bot:</span>
+                                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ number_format($bot->participants_count ?? 0) }}</span>
+                                </div>
                             </div>
                         </div>
                         <div>

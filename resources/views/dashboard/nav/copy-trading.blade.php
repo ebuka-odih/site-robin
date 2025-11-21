@@ -91,7 +91,7 @@
                             <p class="text-xs text-gray-500">{{ $trader->region ?? 'Global' }}</p>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-4 text-sm">
                         <div>
                             <p class="text-gray-500">Win rate</p>
                             <p class="text-[#1fff9c] font-semibold">{{ number_format($trader->win_rate, 1) }}%</p>
@@ -103,6 +103,10 @@
                         <div>
                             <p class="text-gray-500">Min amount</p>
                             <p class="font-semibold">${{ number_format($trader->amount, 0) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Copying users</p>
+                            <p class="font-semibold">{{ number_format($trader->copiers_count ?? 0) }}</p>
                         </div>
                     </div>
                         <div class="rounded-2xl border border-[#1a1a1a] bg-[#030303] px-4 py-3 text-xs text-gray-400">

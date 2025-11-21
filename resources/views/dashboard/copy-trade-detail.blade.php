@@ -1,242 +1,154 @@
-@extends('dashboard.layout.app')
+@extends('dashboard.new-layout')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Page Header -->
-    <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-            <a href="{{ route('user.copyTrading.index') }}" 
-               class="text-gray-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold text-white">Copy Trade Details</h1>
-                <p class="text-gray-400 mt-1">Detailed information about your copied trade</p>
+<div class="space-y-8 text-white">
+    <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('user.copyTrading.index') }}" class="text-gray-400 hover:text-white transition">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </a>
+                <div>
+                    <p class="text-xs uppercase tracking-[0.3em] text-[#08f58d]">Copy Trading</p>
+                    <h1 class="text-3xl font-semibold tracking-tight">Copy Trade Details</h1>
+                    <p class="text-gray-400 text-sm">View performance and manage this mirrored position.</p>
+                </div>
             </div>
+            @if($copiedTrade->status == 1)
+                <form action="{{ route('user.copyTrading.stop', $copiedTrade->id) }}" method="POST" onsubmit="return confirm('Stop copying {{ $trader->name }}?')">
+                    @csrf
+                    <button type="submit" class="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#ff4d4f] to-[#ff6b6b] px-6 py-3 text-sm font-semibold text-white shadow transition hover:brightness-110">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Stop Copying
+                    </button>
+                </form>
+            @endif
         </div>
-        
-        @if($copiedTrade->status == 1)
-        <form action="{{ route('user.copyTrading.stop', $copiedTrade->id) }}" method="POST" class="inline">
-            @csrf
-            <button type="submit" 
-                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
-                    onclick="return confirm('Are you sure you want to stop copying this trader?')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-                <span>Stop Copying</span>
-            </button>
-        </form>
+        @if(session('success'))
+            <div class="rounded-2xl border border-[#1fff9c]/30 bg-[#071c11] px-4 py-3 text-sm text-[#1fff9c]">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="rounded-2xl border border-red-500/40 bg-[#210404] px-4 py-3 text-sm text-red-300">
+                {{ session('error') }}
+            </div>
         @endif
     </div>
 
-    <!-- Success/Error Messages -->
-    @if(session()->has('success'))
-        <div class="bg-green-900 border border-green-700 text-green-100 px-4 py-3 rounded-lg">
-            {{ session()->get('success') }}
-        </div>
-    @endif
-    @if(session()->has('error'))
-        <div class="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded-lg">
-            {{ session()->get('error') }}
-        </div>
-    @endif
-
-    <!-- Trader Information Card -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <div class="flex items-center space-x-6">
-            <div class="relative">
-                <img src="{{ $trader->avatar_url }}" alt="{{ $trader->name }}" 
-                     class="w-20 h-20 rounded-full object-cover border-2 border-gray-600"
-                     onerror="this.src='{{ asset('img/trader.jpg') }}'">
-                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-700"></div>
-            </div>
-            <div class="flex-1">
-                <h2 class="text-2xl font-bold text-white">{{ $trader->name }}</h2>
-                <p class="text-gray-400">Professional Trader</p>
-                <div class="flex items-center space-x-4 mt-2">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">
-                        {{ $trader->win_rate }}% Win Rate
+    <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 space-y-6">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img src="{{ $trader->avatar_url }}" alt="{{ $trader->name }}" class="h-16 w-16 rounded-full border border-[#1a1a1a] object-cover" onerror="this.src='{{ asset('img/trader.jpg') }}'">
+                    <span class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border border-[#050505] {{ $copiedTrade->status ? 'bg-[#1fff9c]' : 'bg-gray-500' }}"></span>
+                </div>
+                <div>
+                    <p class="text-lg font-semibold">{{ $trader->name }}</p>
+                    <p class="text-xs text-gray-500">Professional Trader • {{ $tradeCount }} total trades</p>
+                    <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-[#071c11] px-2.5 py-0.5 text-xs text-[#08f58d]">
+                        <span class="h-2 w-2 rounded-full bg-[#08f58d]"></span>{{ $trader->win_rate }}% win rate
                     </span>
-                    <span class="text-gray-400 text-sm">{{ $tradeCount }} total trades</span>
                 </div>
             </div>
             <div class="text-right">
-                <div class="text-sm text-gray-400">Status</div>
-                @if($copiedTrade->status == 1)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-900 text-green-200">
-                        Active
-                    </span>
-                @else
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-900 text-gray-200">
-                        Inactive
-                    </span>
-                @endif
+                <p class="text-xs text-gray-500">Status</p>
+                <span class="inline-flex items-center gap-2 rounded-full border px-4 py-1 text-sm {{ $copiedTrade->status ? 'border-[#1fff9c]/40 text-[#1fff9c]' : 'border-gray-600 text-gray-400' }}">
+                    <span class="h-2 w-2 rounded-full {{ $copiedTrade->status ? 'bg-[#1fff9c]' : 'bg-gray-500' }}"></span>
+                    {{ $copiedTrade->status ? 'Active' : 'Stopped' }}
+                </span>
+            </div>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div class="rounded-2xl border border-[#0f0f0f] bg-[#030303] p-4">
+                <p class="text-xs text-gray-500">Investment</p>
+                <p class="mt-2 text-2xl font-semibold">{{ $user->formatAmount($copiedTrade->amount) }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#0f0f0f] bg-[#030303] p-4">
+                <p class="text-xs text-gray-500">Trade Count</p>
+                <p class="mt-2 text-2xl font-semibold">{{ $tradeCount }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#0f0f0f] bg-[#030303] p-4">
+                <p class="text-xs text-gray-500">Profit / Loss</p>
+                <p class="mt-2 text-2xl font-semibold {{ $pnl >= 0 ? 'text-[#1fff9c]' : 'text-red-400' }}">{{ $user->formatAmount($pnl) }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#0f0f0f] bg-[#030303] p-4">
+                <p class="text-xs text-gray-500">ROI</p>
+                <p class="mt-2 text-2xl font-semibold {{ $roi >= 0 ? 'text-[#1fff9c]' : 'text-red-400' }}">{{ number_format($roi, 2) }}%</p>
+            </div>
+            <div class="rounded-2xl border border-[#0f0f0f] bg-[#030303] p-4">
+                <p class="text-xs text-gray-500">Duration</p>
+                <p class="mt-2 text-2xl font-semibold">{{ $copiedTrade->created_at->diffForHumans() }}</p>
             </div>
         </div>
     </div>
 
-    <!-- Trade Details Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <!-- Investment Amount -->
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-400">Investment</div>
-                    <div class="text-xl font-bold text-white">${{ number_format($copiedTrade->amount, 2) }}</div>
+    <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 space-y-6">
+        <div class="flex flex-col gap-2">
+            <p class="text-xs uppercase tracking-[0.4em] text-gray-400">Performance</p>
+            <h2 class="text-2xl font-semibold">Trader Metrics</h2>
+        </div>
+        @php 
+            $totalTrades = $wins + $losses;
+            $winRate = $totalTrades > 0 ? round(($wins / $totalTrades) * 100, 1) : 0;
+            $barPercent = min(100, max(0, $winRate));
+        @endphp
+        <div class="grid gap-4 md:grid-cols-4">
+            <div class="rounded-2xl border border-[#0d0d0d] bg-[#030303] p-4 text-center">
+                <p class="text-xs text-gray-500">Total Trades</p>
+                <p class="mt-2 text-3xl font-semibold text-white">{{ $totalTrades }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#0d0d0d] bg-[#030303] p-4 text-center">
+                <p class="text-xs text-gray-500">Win Rate</p>
+                <p class="mt-2 text-3xl font-semibold text-[#1fff9c]">{{ $winRate }}%</p>
+                <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#111111]">
+                    <div class="h-full rounded-full bg-gradient-to-r from-[#1fff9c] to-[#05c46b]" style="width: {{ $barPercent }}%"></div>
                 </div>
             </div>
-        </div>
-
-        <!-- Trade Count -->
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-400">Trade Count</div>
-                    <div class="text-xl font-bold text-white">{{ $tradeCount }}</div>
-                </div>
+            <div class="rounded-2xl border border-[#0d0d0d] bg-[#030303] p-4 text-center">
+                <p class="text-xs text-gray-500">Winning Trades</p>
+                <p class="mt-2 text-3xl font-semibold text-[#1fff9c]">{{ $wins }}</p>
+            </div>
+            <div class="rounded-2xl border border-[#0d0d0d] bg-[#030303] p-4 text-center">
+                <p class="text-xs text-gray-500">Losing Trades</p>
+                <p class="mt-2 text-3xl font-semibold text-red-400">{{ $losses }}</p>
             </div>
         </div>
+    </div>
 
-        <!-- Profit/Loss -->
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-400">Profit/Loss</div>
-                    <div class="text-xl font-bold {{ $pnl >= 0 ? 'text-green-400' : 'text-red-400' }}">${{ number_format($pnl, 2) }}</div>
+    <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 space-y-6">
+        <div class="flex flex-col gap-2">
+            <p class="text-xs uppercase tracking-[0.4em] text-gray-400">Timeline</p>
+            <h2 class="text-2xl font-semibold">Trade History</h2>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center gap-4 rounded-2xl border border-[#0e0e0e] bg-[#030303] px-4 py-3">
+                <span class="h-3 w-3 rounded-full bg-[#1fff9c]"></span>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-white">Copy Trade Started</p>
+                    <p class="text-xs text-gray-500">{{ $copiedTrade->created_at->format('M d, Y \\a\\t g:i A') }}</p>
                 </div>
             </div>
-        </div>
-
-        <!-- ROI -->
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-400">ROI</div>
-                    <div class="text-xl font-bold text-purple-400">{{ number_format($roi, 2) }}%</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Duration -->
-        <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-            <div class="flex items-center space-x-3 mb-4">
-                <div class="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <div class="text-sm text-gray-400">Duration</div>
-                    <div class="text-xl font-bold text-white">
-                        {{ $copiedTrade->created_at->diffForHumans() }}
+            @if($copiedTrade->stopped_at)
+                <div class="flex items-center gap-4 rounded-2xl border border-[#0e0e0e] bg-[#030303] px-4 py-3">
+                    <span class="h-3 w-3 rounded-full bg-red-400"></span>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-white">Copy Trade Stopped</p>
+                        <p class="text-xs text-gray-500">{{ $copiedTrade->stopped_at->format('M d, Y \\a\\t g:i A') }}</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Trader Performance -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <h3 class="text-lg font-semibold text-white mb-6">Trader Performance</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <!-- Trade Count -->
-            <div class="text-center p-4 bg-gray-700 rounded-lg">
-                <div class="text-2xl font-bold text-blue-400 mb-2">{{ $tradeCount }}</div>
-                <div class="text-sm text-gray-400">Total Trades</div>
-            </div>
-
-            <!-- Win Rate -->
-            <div class="text-center p-4 bg-gray-700 rounded-lg">
-                @php 
-                    $totalTrades = $wins + $losses;
-                    $winRate = $totalTrades > 0 ? round(($wins / $totalTrades) * 100, 1) : 0;
-                    $barPercent = min(100, max(0, $winRate));
-                @endphp
-                <div class="text-2xl font-bold text-green-400 mb-2">{{ $winRate }}%</div>
-                <div class="text-sm text-gray-400">Win Rate</div>
-                <div class="w-full bg-gray-600 rounded-full h-1.5 mt-3 overflow-hidden">
-                    <div class="bg-green-500 h-1.5" style="width: {{ $barPercent }}%"></div>
-                </div>
-            </div>
-
-            <!-- Wins -->
-            <div class="text-center p-4 bg-gray-700 rounded-lg">
-                <div class="text-2xl font-bold text-green-400 mb-2">{{ $wins }}</div>
-                <div class="text-sm text-gray-400">Winning Trades</div>
-            </div>
-
-            <!-- Losses -->
-            <div class="text-center p-4 bg-gray-700 rounded-lg">
-                <div class="text-2xl font-bold text-red-400 mb-2">{{ $losses }}</div>
-                <div class="text-sm text-gray-400">Losing Trades</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Trade Timeline -->
-    <div class="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <h3 class="text-lg font-semibold text-white mb-6">Trade Timeline</h3>
-        
-        <div class="space-y-4">
-            <div class="flex items-center space-x-4">
-                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div class="flex-1">
-                    <div class="text-white font-medium">Copy Trade Started</div>
-                    <div class="text-sm text-gray-400">{{ $copiedTrade->created_at->format('M d, Y \a\t g:i A') }}</div>
-                </div>
-            </div>
-            
-            @if($copiedTrade->stopped_at)
-            <div class="flex items-center space-x-4">
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div class="flex-1">
-                    <div class="text-white font-medium">Copy Trade Stopped</div>
-                    <div class="text-sm text-gray-400">{{ $copiedTrade->stopped_at->format('M d, Y \a\t g:i A') }}</div>
-                </div>
-            </div>
             @endif
         </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('user.copyTrading.index') }}" 
-           class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors duration-200">
+    <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <a href="{{ route('user.copyTrading.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-[#1a1a1a] px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white">
             Back to Copy Trading
         </a>
-        
-        @if($copiedTrade->status == 1)
-        <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-400">This trade is currently active and copying {{ $trader->name }}'s strategies</span>
-        </div>
+        @if($copiedTrade->status)
+            <p class="text-xs text-gray-500">This position mirrors {{ $trader->name }} and updates automatically.</p>
         @else
-        <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-400">This trade has been stopped</span>
-        </div>
+            <p class="text-xs text-gray-500">This copy trade is inactive. Start a new one from the marketplace.</p>
         @endif
     </div>
 </div>

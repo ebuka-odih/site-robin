@@ -59,6 +59,19 @@
                             <label for="quote_asset" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Quote Asset</label>
                             <input type="text" name="quote_asset" id="quote_asset" value="{{ old('quote_asset', $bot->quote_asset) }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required>
                         </div>
+
+                        <div>
+                            <label for="participants_count" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Users in Bot</label>
+                            <input
+                                type="number"
+                                min="0"
+                                name="participants_count"
+                                id="participants_count"
+                                value="{{ old('participants_count', $bot->participants_count) }}"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                placeholder="e.g. 120"
+                            >
+                        </div>
                     </div>
 
                     <!-- Investment Settings -->

@@ -273,6 +273,14 @@
                 <span class="ml-3" sidebar-toggle-item>Bot Trading</span>
             </a>
           </li>
+          <li>
+            <a href="{{ route('admin.bot-templates.index') }}" class="{{ request()->routeIs('admin.bot-templates.*') ? "active" : '' }} flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
+                <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/>
+                </svg>
+                <span class="ml-3" sidebar-toggle-item>Bot Templates</span>
+            </a>
+          </li>
 
           <li>
             <a href="{{ route('admin.mining.index') }}" class="{{ request()->routeIs('admin.mining.*') ? "active" : '' }} flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">

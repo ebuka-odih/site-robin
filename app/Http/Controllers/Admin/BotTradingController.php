@@ -109,6 +109,7 @@ class BotTradingController extends Controller
             'daily_loss_limit' => 'nullable|numeric|min:1',
             'trading_24_7' => 'nullable',
             'auto_restart' => 'nullable',
+            'participants_count' => 'nullable|integer|min:0|max:1000000',
         ]);
 
         if ($validator->fails()) {
@@ -131,6 +132,7 @@ class BotTradingController extends Controller
                 'daily_loss_limit' => $request->daily_loss_limit,
                 'trading_24_7' => $request->boolean('trading_24_7', true),
                 'auto_restart' => $request->boolean('auto_restart', false),
+                'participants_count' => $request->input('participants_count', $bot->participants_count),
             ]);
 
             Log::info("Admin updated bot {$bot->id} by user " . auth()->id());

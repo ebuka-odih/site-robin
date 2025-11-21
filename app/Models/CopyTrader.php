@@ -19,7 +19,8 @@ class CopyTrader extends Model
         'profit_share', 
         'win', 
         'loss',
-        'status'
+        'status',
+        'copiers_count'
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class CopyTrader extends Model
         'profit_share' => 'decimal:2',
         'win' => 'integer',
         'loss' => 'integer',
+        'copiers_count' => 'integer',
     ];
 
     public function copied_trades()
