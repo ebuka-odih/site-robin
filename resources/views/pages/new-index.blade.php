@@ -186,10 +186,10 @@
     </div>
 
     <div class="rounded-[40px] bg-white p-10 text-center shadow-lg shadow-[#a48dff]/20">
-        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#05c46b]">{{ config('app.name') }} Savings</p>
+        <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#7c50ff]">{{ config('app.name') }} Savings</p>
         <h2 class="mt-3 text-3xl font-semibold text-[#140a33]">Earn high interest</h2>
         <p class="mt-2 text-lg text-[#6b628d]">Put your money to work in our easy access, high yield savings.</p>
-        <div class="mt-8 text-6xl font-semibold text-[#05c46b]">1.91% <span class="text-2xl align-top text-[#6b628d]">APY</span></div>
+        <div class="mt-8 text-6xl font-semibold text-[#5c28ff]">1.91% <span class="text-2xl align-top text-[#6b628d]">APY</span></div>
         <div class="mt-8 flex flex-col gap-6 text-sm text-[#6b628d] md:flex-row md:justify-center">
             <div>
                 <p class="font-semibold text-[#35276e]">Follows the</p>
@@ -209,7 +209,7 @@
     <div class="rounded-[40px] bg-[#f7f4ff] p-10">
         <div class="grid gap-10 lg:grid-cols-3">
             <div class="space-y-4">
-                <div class="rounded-full bg-white px-4 py-1 text-xs font-semibold text-[#05c46b] w-max">What we offer</div>
+                <div class="rounded-full bg-white px-4 py-1 text-xs font-semibold text-[#5c28ff] w-max">What we offer</div>
                 <h3 class="text-3xl font-semibold text-[#140a33]">Everything in one investing app.</h3>
                 <p class="text-[#6b628d]">Trade thousands of U.S. and European stocks, earn on idle cash, and automate your strategy with {{ config('app.name') }} AI insights.</p>
             </div>
@@ -228,7 +228,7 @@
 
     <div class="space-y-10">
         <div class="flex flex-col gap-4 text-center">
-                <p class="text-xs uppercase tracking-[0.4em] text-[#05c46b]">How it works</p>
+                <p class="text-xs uppercase tracking-[0.4em] text-[#5c28ff]">How it works</p>
             <h3 class="text-3xl font-semibold text-[#140a33]">Built for serious compounding.</h3>
             <p class="mx-auto max-w-3xl text-[#6b628d]">Track performance across multiple currencies, schedule deposits, and rely on our regulated infrastructure.</p>
         </div>
