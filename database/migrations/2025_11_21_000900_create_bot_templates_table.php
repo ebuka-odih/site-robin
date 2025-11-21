@@ -16,10 +16,10 @@ return new class extends Migration
             $table->foreignUuid('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('trading_type')->default('crypto');
+            $table->string('trading_type', 40)->default('crypto');
             $table->string('base_asset', 10);
             $table->string('quote_asset', 10);
-            $table->string('strategy');
+            $table->string('strategy', 80);
             $table->decimal('leverage', 8, 2)->default(1);
             $table->string('trade_duration', 10)->nullable();
             $table->decimal('target_yield_percentage', 8, 2)->nullable();
