@@ -3,20 +3,6 @@
 @section('content')
 <section class="space-y-20">
     <div class="text-center space-y-6">
-        <div class="flex items-center justify-center gap-4 text-xs uppercase tracking-[0.3em] text-[#6b628d]">
-            <span class="flex items-center gap-2 text-[#35276e]">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Regulated by EFSA
-            </span>
-            <span class="flex items-center gap-2 text-[#1ea672]">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17l-3.5 1.8.7-4.1L6 11.7l4.2-.6L12 7l1.8 4.1 4.2.6-3.2 2.9.7 4.2z" />
-                </svg>
-                4.7 on Trustpilot
-            </span>
-        </div>
         <div class="space-y-6">
             <h1 class="text-5xl font-normal leading-tight text-[#140a33] md:text-6xl xl:text-7xl tracking-tight">
                 Invest smarter. Go further.
@@ -119,9 +105,9 @@
                 <p class="text-sm text-[#6b628d]">Benchmarked against the ECB’s variable overnight interest rate, automatically calculated daily.</p>
             </div>
             <div class="rounded-3xl border border-[#f0edff] bg-white p-6 space-y-2">
-                <p class="text-sm uppercase tracking-[0.3em] text-[#5c28ff]">Managed by</p>
-                <h3 class="text-lg font-semibold">BlackRock</h3>
-                <p class="text-sm text-[#6b628d]">Run by BlackRock, the world’s largest asset manager with over $10 trillion under management.</p>
+                <p class="text-sm uppercase tracking-[0.3em] text-[#5c28ff]">Daily liquidity</p>
+                <h3 class="text-lg font-semibold">Withdraw whenever you need</h3>
+                <p class="text-sm text-[#6b628d]">Move funds instantly back into your trading balance with no lockups or penalties.</p>
             </div>
             <div class="rounded-3xl border border-[#f0edff] bg-white p-6 space-y-2">
                 <p class="text-sm uppercase tracking-[0.3em] text-[#5c28ff]">No limits</p>
@@ -266,11 +252,11 @@
     </div>
 
         <div class="rounded-[32px] bg-[#050505] px-8 py-12 text-center text-white">
-            <p class="text-sm uppercase tracking-[0.4em] text-[#08f58d]">Ready to move your money?</p>
+            <p class="text-sm uppercase tracking-[0.4em] text-[#7c50ff]">Ready to move your money?</p>
             <h3 class="mt-3 text-3xl font-semibold">Join investors who already trust {{ config('app.name') }}.</h3>
             <p class="mt-4 text-white/70">Open an account in minutes and put your capital to work with regulated protection and modern tooling.</p>
             <div class="mt-8 flex flex-col items-center justify-center gap-3 md:flex-row">
-                <a href="{{ route('register') }}" class="rounded-full bg-[#05c46b] px-8 py-3 text-sm font-semibold text-[#030303]">Create free account</a>
+                <a href="{{ route('register') }}" class="rounded-full bg-[#5c28ff] px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-[#5c28ff]/40 hover:bg-[#4e1fff] transition">Create free account</a>
                 <a href="{{ route('products') }}" class="rounded-full border border-white/30 px-8 py-3 text-sm font-semibold text-white/90">Explore product</a>
             </div>
         </div>

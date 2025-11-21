@@ -34,10 +34,6 @@
                     <a href="{{ route('index') }}" class="text-2xl font-semibold tracking-tight text-[#170041]">
                         {{ config('app.name', 'Laravel') }}
                     </a>
-                    <div class="hidden items-center gap-5 text-sm text-[#190c42] md:flex">
-                        <a href="#" class="rounded-full bg-[#f0edff] px-4 py-1.5 font-semibold text-[#5c28ff] hover:bg-[#e4dcff] transition-colors">Personal</a>
-                        <a href="#" class="text-[#6b628d] hover:text-[#35276e]">Business</a>
-                    </div>
                 </div>
                 <nav class="hidden items-center gap-6 text-sm text-[#35276e] md:flex">
                     <div class="group relative">
@@ -55,7 +51,6 @@
                             </div>
                         </div>
                     </div>
-                    <a href="#" class="text-[#35276e] hover:text-[#120732]">Pricing</a>
                     <a href="{{ route('about') }}" class="text-[#35276e] hover:text-[#120732]">About</a>
                     <div class="group relative">
                         <button class="flex items-center gap-1 text-[#35276e] hover:text-[#120732] py-2">
@@ -113,7 +108,6 @@
                         <a href="{{ route('savings') }}" class="block">Savings</a>
                     </div>
                 </div>
-                <a href="#" class="block">Pricing</a>
                 <a href="#" class="block">About</a>
                 <div class="space-y-2">
                     <p class="text-xs uppercase tracking-[0.3em] text-[#6b628d]">More</p>
