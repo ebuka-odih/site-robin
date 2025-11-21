@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('bot_templates')) {
+            return;
+        }
+
         Schema::create('bot_templates', function (Blueprint $table) {
             $table->id();
             $table->foreignUuid('created_by')->nullable()->constrained('users')->nullOnDelete();

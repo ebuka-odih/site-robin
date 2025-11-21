@@ -29,6 +29,7 @@ class CopiedTrade extends Model
         'win' => 'integer',
         'loss' => 'integer',
         'pnl' => 'decimal:2',
+        'status' => 'integer',
     ];
 
     public function copy_trader()
