@@ -1,6 +1,8 @@
 @extends('pages.new-layout')
 
-@php($appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? request()->getHost())
+@php
+    $appHost = parse_url(config('app.url'), PHP_URL_HOST) ?? request()->getHost();
+@endphp
 
 @section('content')
 <section class="space-y-16">
