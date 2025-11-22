@@ -288,23 +288,37 @@
         document.getElementById('depositDetailsModal').classList.remove('hidden');
         
         // Fetch deposit details
-        fetch(`/admin/deposit/${depositId}/details`)
-            .then(response => response.json())
+        fetch(`/admin/deposit/${encodeURIComponent(depositId)}/details`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        })
+            .then(async response => {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Unable to fetch deposit details.');
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.success) {
+                if (data.success && data.html) {
                     document.getElementById('depositModalContent').innerHTML = data.html;
                 } else {
+                    const message = data.message ?? 'Failed to load deposit details';
                     document.getElementById('depositModalContent').innerHTML = `
                         <div class="text-center py-8">
-                            <p class="text-red-600 dark:text-red-400">Failed to load deposit details</p>
+                            <p class="text-red-600 dark:text-red-400">${message}</p>
                         </div>
                     `;
                 }
             })
             .catch(error => {
+                console.error('Deposit details fetch failed', error);
                 document.getElementById('depositModalContent').innerHTML = `
                     <div class="text-center py-8">
-                        <p class="text-red-600 dark:text-red-400">Error loading deposit details</p>
+                        <p class="text-red-600 dark:text-red-400">Error loading deposit details. Please try again.</p>
                     </div>
                 `;
             });
