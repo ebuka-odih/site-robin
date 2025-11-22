@@ -50,6 +50,10 @@
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
                             Declined
                         </span>
+                    @elseif($deposit->status == \App\Models\Deposit::STATUS_IN_REVIEW)
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                            In Review
+                        </span>
                     @endif
                 </p>
             </div>
@@ -107,17 +111,17 @@
     @endif
 
     <!-- Action Buttons -->
-    @if($deposit->status == 0)
+    @if($deposit->status == \App\Models\Deposit::STATUS_PENDING || $deposit->status == \App\Models\Deposit::STATUS_IN_REVIEW)
         <div class="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">
             <form method="POST" action="{{ route('admin.deposit.approve', $deposit->id) }}" class="flex-1">
                 @csrf
                 <button type="submit" 
                         class="w-full inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300"
-                        onclick="return confirm('Are you sure you want to approve this deposit? This will credit the user\'s account.')">
+                        onclick="return confirm('{{ $deposit->status == \App\Models\Deposit::STATUS_IN_REVIEW ? 'Approve this deposit again? This will re-credit the user.' : 'Are you sure you want to approve this deposit? This will credit the user\'s account.' }}')">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    Approve Deposit
+                    {{ $deposit->status == \App\Models\Deposit::STATUS_IN_REVIEW ? 'Re-Approve Deposit' : 'Approve Deposit' }}
                 </button>
             </form>
             <form method="POST" action="{{ route('admin.deposit.decline', $deposit->id) }}" class="flex-1">
@@ -129,6 +133,20 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                     Decline Deposit
+                </button>
+            </form>
+        </div>
+    @elseif($deposit->status == \App\Models\Deposit::STATUS_APPROVED)
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-600">
+            <form method="POST" action="{{ route('admin.deposit.review', $deposit->id) }}">
+                @csrf
+                <button type="submit"
+                        class="w-full inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300"
+                        onclick="return confirm('Move this deposit to review? Previously added funds will be removed until it is approved again.')">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    Move to Review
                 </button>
             </form>
         </div>

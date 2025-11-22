@@ -139,19 +139,18 @@
                                             {{ $deposit->created_at ? $deposit->created_at->format('M d, Y H:i') : 'N/A' }}
                     </td>
                     <td class="p-4 whitespace-nowrap">
-                                            @if($deposit->status == 0)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                                                    Pending
-                                                </span>
-                                            @elseif($deposit->status == 1)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                                                    Approved
-                                                </span>
-                                            @elseif($deposit->status == 2)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-                                                    Declined
-                                                </span>
-                                            @endif
+                        @php
+                            $statusClasses = [
+                                \App\Models\Deposit::STATUS_PENDING => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                \App\Models\Deposit::STATUS_APPROVED => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                                \App\Models\Deposit::STATUS_DECLINED => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+                                \App\Models\Deposit::STATUS_IN_REVIEW => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                            ];
+                            $statusClass = $statusClasses[$deposit->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+                        @endphp
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">
+                            {{ $deposit->status_label }}
+                        </span>
                     </td>
                                         <td class="p-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex items-center space-x-2">
@@ -165,7 +164,7 @@
                                                     View
                          </button>
 
-                                                @if($deposit->status == 0)
+                                                @if(in_array($deposit->status, [\App\Models\Deposit::STATUS_PENDING, \App\Models\Deposit::STATUS_IN_REVIEW]))
                                                     <!-- Approve Button -->
                                                     <button onclick="approveDeposit('{{ $deposit->id }}')" 
                                                             class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
@@ -182,6 +181,16 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                         </svg>
                                                         Decline
+                                                    </button>
+                                                @endif
+
+                                                @if($deposit->status === \App\Models\Deposit::STATUS_APPROVED)
+                                                    <button onclick="reviewDeposit('{{ $deposit->id }}')"
+                                                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                                        </svg>
+                                                        Mark In Review
                                                     </button>
                                                 @endif
 
@@ -310,7 +319,7 @@
     function approveDeposit(depositId) {
         showConfirmationModal(
             'Approve Deposit',
-            'Are you sure you want to approve this deposit? This will credit the user\'s account.',
+            'Are you sure you want to approve this deposit? This will credit (or re-credit) the user\'s account.',
             'bg-green-100 text-green-600',
             'Approve',
             'bg-green-600 hover:bg-green-700',
@@ -328,6 +337,32 @@
                 csrfInput.value = csrfToken;
                 form.appendChild(csrfInput);
                 
+                document.body.appendChild(form);
+                form.submit();
+            }
+        );
+    }
+
+    // Move deposit to review
+    function reviewDeposit(depositId) {
+        showConfirmationModal(
+            'Move Deposit to Review',
+            'This will remove the previously credited funds until the deposit is approved again. Continue?',
+            'bg-blue-100 text-blue-600',
+            'Move to Review',
+            'bg-blue-600 hover:bg-blue-700',
+            () => {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/deposit/${depositId}/review`;
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_token';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
                 document.body.appendChild(form);
                 form.submit();
             }

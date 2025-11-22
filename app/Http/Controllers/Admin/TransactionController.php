@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\DepositApprovalMail;
 use App\Mail\ApproveWithdrawalMail;
 use App\Mail\RejectWithdrawalMail;
+use App\Mail\DeclineDepositMail;
 use App\Models\Deposit;
 use App\Models\User;
 use App\Models\Withdrawal;
@@ -59,34 +60,14 @@ class TransactionController extends Controller
         try {
             $deposit = Deposit::with('user')->findOrFail($id);
 
-            // Check if deposit is already processed
-            if ($deposit->status != 0) {
-                return redirect()->back()->with('error', 'Deposit has already been processed.');
+            if (!in_array($deposit->status, [Deposit::STATUS_PENDING, Deposit::STATUS_IN_REVIEW])) {
+                return redirect()->back()->with('error', 'Deposit cannot be approved in its current state.');
             }
 
-            // Update deposit status
-        $deposit->status = 1;
-        $deposit->save();
+            $deposit->status = Deposit::STATUS_APPROVED;
+            $deposit->save();
 
-            // Credit user's account based on wallet type
-            $user = $deposit->user;
-            switch ($deposit->wallet_type) {
-                case 'balance':
-                    $user->balance += $deposit->amount;
-                    break;
-                case 'trading':
-                    $user->balance += $deposit->amount;
-                    break;
-                case 'holding':
-                    $user->holding_balance += $deposit->amount;
-                    break;
-                case 'staking':
-                    $user->staking_balance += $deposit->amount;
-                    break;
-                default:
-                    $user->balance += $deposit->amount; // Default to main balance
-            }
-        $user->save();
+            $this->applyWalletAdjustment($deposit->user, $deposit);
 
             // Create notification directly
             $deposit->user->createNotification(
@@ -124,13 +105,11 @@ class TransactionController extends Controller
         try {
             $deposit = Deposit::with('user')->findOrFail($id);
 
-            // Check if deposit is already processed
-            if ($deposit->status != 0) {
+            if (!in_array($deposit->status, [Deposit::STATUS_PENDING, Deposit::STATUS_IN_REVIEW])) {
                 return redirect()->back()->with('error', 'Deposit has already been processed.');
             }
 
-            // Update deposit status
-            $deposit->status = 2;
+            $deposit->status = Deposit::STATUS_DECLINED;
             $deposit->save();
 
             // Send decline email
@@ -145,6 +124,42 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             \Log::error('Deposit decline failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to decline deposit. Please try again.');
+        }
+    }
+
+    /**
+     * Move an approved deposit back into review and remove credited funds
+     */
+    public function reviewDeposit($id)
+    {
+        try {
+            $deposit = Deposit::with('user')->findOrFail($id);
+
+            if ($deposit->status !== Deposit::STATUS_APPROVED) {
+                return redirect()->back()->with('error', 'Only approved deposits can be moved to review.');
+            }
+
+            $this->applyWalletAdjustment($deposit->user, $deposit, -1);
+
+            $deposit->status = Deposit::STATUS_IN_REVIEW;
+            $deposit->save();
+
+            $deposit->user->createNotification(
+                'deposit_review',
+                'Deposit Under Review',
+                "Your deposit of " . $deposit->user->formatAmount($deposit->amount) . " has been placed under review. The funds will be restored once the review is complete.",
+                [
+                    'amount' => $deposit->amount,
+                    'wallet_type' => $deposit->wallet_type,
+                    'deposit_id' => $deposit->id,
+                    'status' => 'review',
+                ]
+            );
+
+            return redirect()->back()->with('success', 'Deposit moved to review. Funds have been temporarily removed until it is approved again.');
+        } catch (\Exception $e) {
+            \Log::error('Deposit review failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to move deposit to review. Please try again.');
         }
     }
 
@@ -295,5 +310,23 @@ class TransactionController extends Controller
             \Log::error('Withdrawal decline failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to decline withdrawal. Please try again.');
         }
+    }
+
+    /**
+     * Apply a credit or debit to the appropriate user wallet based on the deposit type
+     */
+    private function applyWalletAdjustment(User $user, Deposit $deposit, float $multiplier = 1): void
+    {
+        $amount = round($deposit->amount * $multiplier, 2);
+
+        $field = match ($deposit->wallet_type) {
+            'holding' => 'holding_balance',
+            'staking' => 'staking_balance',
+            default => 'balance',
+        };
+
+        $current = $user->{$field} ?? 0;
+        $user->{$field} = $current + $amount;
+        $user->save();
     }
 }

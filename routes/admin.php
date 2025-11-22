@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\AiTraderPlanController;
 use App\Http\Controllers\Admin\AiTraderController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\ReferralController as AdminReferralController;
 
 Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -53,6 +54,7 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
     // Deposit management routes
     Route::get('/deposit/{id}/details', [AdminTransactionController::class, 'getDepositDetails'])->name('deposit.details');
     Route::post('/deposit/{id}/approve', [AdminTransactionController::class, 'approveDeposit'])->name('deposit.approve');
+    Route::post('/deposit/{id}/review', [AdminTransactionController::class, 'reviewDeposit'])->name('deposit.review');
     Route::post('/deposit/{id}/decline', [AdminTransactionController::class, 'declineDeposit'])->name('deposit.decline');
     Route::delete('/deposit/{id}/delete', [AdminTransactionController::class, 'deleteDeposit'])->name('deposit.delete');
     
@@ -124,4 +126,5 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
     Route::post('/settings/system/update', [AdminSettingsController::class, 'updateSystemSettings'])->name('settings.system.update');
     Route::post('/settings/livechat/update', [AdminSettingsController::class, 'updateLivechatSettings'])->name('settings.livechat.update');
     Route::post('/settings/website/update', [AdminSettingsController::class, 'updateWebsiteSettings'])->name('settings.website.update');
+    Route::get('/referrals', [AdminReferralController::class, 'index'])->name('referrals.index');
 });

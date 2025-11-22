@@ -137,8 +137,17 @@
                             <td class="px-6 py-4 text-gray-300">{{ $deposit->payment_method->crypto_display_name ?? '—' }}</td>
                             <td class="px-6 py-4 text-xs text-gray-500 max-w-[150px] truncate">{{ $deposit->payment_method->address ?? '—' }}</td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $deposit->status == 1 ? 'bg-[#0f2b14] text-[#00ff5f]' : ($deposit->status == 2 ? 'bg-[#2b0f0f] text-[#ff4d4d]' : 'bg-[#1f1f1f] text-gray-300') }}">
-                                    {{ $deposit->status_badge_text ?? 'Pending' }}
+                                @php
+                                    $statusStyles = [
+                                        \App\Models\Deposit::STATUS_APPROVED => 'bg-[#0f2b14] text-[#00ff5f]',
+                                        \App\Models\Deposit::STATUS_DECLINED => 'bg-[#2b0f0f] text-[#ff4d4d]',
+                                        \App\Models\Deposit::STATUS_IN_REVIEW => 'bg-[#0f1e33] text-[#5cb3ff]',
+                                        \App\Models\Deposit::STATUS_PENDING => 'bg-[#1f1f1f] text-gray-300',
+                                    ];
+                                    $badgeClass = $statusStyles[$deposit->status] ?? 'bg-[#1f1f1f] text-gray-300';
+                                @endphp
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $badgeClass }}">
+                                    {{ $deposit->status_label }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-gray-300">{{ $deposit->created_at->format('M d, Y') }}</td>

@@ -267,8 +267,17 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $deposit->status == 1 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' }}">
-                            {{ $deposit->status == 1 ? 'Approved' : 'Pending' }}
+                        @php
+                            $recentStatusClasses = [
+                                \App\Models\Deposit::STATUS_APPROVED => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                                \App\Models\Deposit::STATUS_PENDING => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                \App\Models\Deposit::STATUS_DECLINED => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+                                \App\Models\Deposit::STATUS_IN_REVIEW => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                            ];
+                            $recentStatusClass = $recentStatusClasses[$deposit->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+                        @endphp
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $recentStatusClass }}">
+                            {{ $deposit->status_label }}
                         </span>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ $deposit->created_at->diffForHumans() }}</p>
                     </div>

@@ -94,10 +94,17 @@
                                 <div class="text-white">{{ $deposit->payment_method ? $deposit->payment_method->crypto_display_name ?? 'N/A' : 'N/A' }}</div>
                             </div>
                             <div class="text-right">
-                                <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                    {{ $deposit->status == 1 ? 'bg-green-100 text-green-800' : 
-                                       ($deposit->status == 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                    {{ $deposit->status == 1 ? 'Completed' : ($deposit->status == 0 ? 'Pending' : 'Rejected') }}
+                                @php
+                                    $depositStatusClasses = [
+                                        \App\Models\Deposit::STATUS_APPROVED => 'bg-green-100 text-green-800',
+                                        \App\Models\Deposit::STATUS_PENDING => 'bg-yellow-100 text-yellow-800',
+                                        \App\Models\Deposit::STATUS_DECLINED => 'bg-red-100 text-red-800',
+                                        \App\Models\Deposit::STATUS_IN_REVIEW => 'bg-blue-100 text-blue-800',
+                                    ];
+                                    $depositStatusClass = $depositStatusClasses[$deposit->status] ?? 'bg-gray-100 text-gray-800';
+                                @endphp
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $depositStatusClass }}">
+                                    {{ $deposit->status_label }}
                                 </span>
                             </div>
                         </div>
@@ -146,10 +153,17 @@
                                     {{ $deposit->payment_method ? $deposit->payment_method->crypto_display_name ?? 'N/A' : 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        {{ $deposit->status == 1 ? 'bg-green-100 text-green-800' : 
-                                           ($deposit->status == 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                        {{ $deposit->status == 1 ? 'Completed' : ($deposit->status == 0 ? 'Pending' : 'Rejected') }}
+                                    @php
+                                        $depositStatusClasses = [
+                                            \App\Models\Deposit::STATUS_APPROVED => 'bg-green-100 text-green-800',
+                                            \App\Models\Deposit::STATUS_PENDING => 'bg-yellow-100 text-yellow-800',
+                                            \App\Models\Deposit::STATUS_DECLINED => 'bg-red-100 text-red-800',
+                                            \App\Models\Deposit::STATUS_IN_REVIEW => 'bg-blue-100 text-blue-800',
+                                        ];
+                                        $depositStatusClass = $depositStatusClasses[$deposit->status] ?? 'bg-gray-100 text-gray-800';
+                                    @endphp
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $depositStatusClass }}">
+                                        {{ $deposit->status_label }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
