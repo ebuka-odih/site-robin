@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Referral;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class RegisteredUserController extends Controller
 {
@@ -64,6 +66,9 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $referralCodeInput = $request->input('referral_code') ?? session('referrer_code');
+        $referrer = $referralCodeInput ? User::where('referral_code', $referralCodeInput)->first() : null;
+
         $user = User::create([
             'name' => $request->name,
             'username' => $request->username,
@@ -73,6 +78,21 @@ class RegisteredUserController extends Controller
             'currency' => $request->currency,
             'password' => Hash::make($request->password),
         ]);
+
+        $user->referral_code = $this->generateReferralCode();
+        if ($referrer) {
+            $user->referred_by_id = $referrer->id;
+        }
+        $user->save();
+
+        if ($referrer) {
+            Referral::create([
+                'referrer_id' => $referrer->id,
+                'referred_user_id' => $user->id,
+                'status' => 'registered',
+            ]);
+            session()->forget('referrer_code');
+        }
 
         // Generate verification code
         $verificationCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -111,5 +131,14 @@ class RegisteredUserController extends Controller
             \Log::error('Failed to send verification email to: ' . $user->email . ' Error: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    private function generateReferralCode(): string
+    {
+        do {
+            $code = Str::upper(Str::random(8));
+        } while (User::where('referral_code', $code)->exists());
+
+        return $code;
     }
 }

@@ -234,36 +234,17 @@ class UserController extends Controller
             ),
         ];
 
-        $dashboardData = [
-            'user' => $user,
-            'trades' => $trades,
-            'openTrades' => $openTrades,
-            'closedTrades' => $closedTrades,
-            'totalTrades' => $totalTrades,
-            'winningTrades' => $winningTrades,
-            'winRate' => $winRate,
-            'avgProfit' => $avgProfit,
-            'activePlans' => $activePlans,
-            'tradingPlans' => $tradingPlans,
-            'signalPlans' => $signalPlans,
-            'stakingPlans' => $stakingPlans,
-            'miningPlans' => $miningPlans,
-            'totalPlans' => $activePlans->count(),
-            'holdings' => $holdings,
-            'totalHoldingsValue' => $totalHoldingsValue,
-            'botTradings' => $botTradings,
-            'activeBots' => $activeBots,
-            'totalBotProfit' => $totalBotProfit,
-            'recentTransactions' => $recentTransactions,
-            'recentActivity' => $recentActivity,
-            'copyTrades' => $copyTrades,
-            'activeCopyTrades' => $activeCopyTrades,
-            'stockAssets' => $stockAssets,
+        $reactProps = $this->buildReactDashboardProps($user, [
             'accountTabs' => $accountTabs,
             'portfolioChartData' => $portfolioChartData,
-        ];
+            'stockAssets' => $stockAssets,
+            'recentActivity' => $recentActivity,
+            'openTrades' => $openTrades,
+        ]);
         
-        return view('dashboard.new-index', $dashboardData);
+        return view('dashboard.react', [
+            'reactProps' => $reactProps,
+        ]);
     }
 
     public function tradeHub()
@@ -732,5 +713,101 @@ class UserController extends Controller
     public function loading()
     {
         return view('dashboard.loading');
+    }
+
+    private function buildReactDashboardProps(User $user, array $payload): array
+    {
+        $tabs = array_map(function ($tab) {
+            return [
+                'id' => $tab['id'],
+                'label' => $tab['label'],
+                'balance' => $tab['balance'],
+                'change' => $tab['change'],
+                'isPositive' => (bool) ($tab['isPositive'] ?? false),
+                'raw_balance' => $tab['raw_balance'] ?? 0,
+            ];
+        }, $payload['accountTabs']);
+
+        $watchlist = ($payload['stockAssets'] ?? collect())
+            ->take(5)
+            ->map(function ($asset) {
+                return [
+                    'symbol' => $asset->symbol,
+                    'name' => $asset->name,
+                    'price' => round($asset->current_price ?? 0, 2),
+                    'change' => round($asset->price_change_24h ?? 0, 2),
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $activity = ($payload['recentActivity'] ?? collect())
+            ->map(function ($entry) {
+                return [
+                    'title' => $entry['title'] ?? ucfirst($entry['type'] ?? 'activity'),
+                    'amount' => $entry['amount'] ?? 0,
+                    'time_ago' => $entry['time_ago'] ?? '',
+                    'type' => $entry['type'] ?? 'activity',
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $openTrades = ($payload['openTrades'] ?? collect())
+            ->take(4)
+            ->map(function ($trade) {
+                return [
+                    'symbol' => $trade->symbol ?? $trade->pair ?? '—',
+                    'type' => strtoupper($trade->side ?? $trade->type ?? 'N/A'),
+                    'amount' => (float) ($trade->amount ?? 0),
+                    'pnl' => (float) ($trade->profit_loss ?? 0),
+                    'created_at' => optional($trade->created_at)->diffForHumans() ?? '',
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        $news = [
+            [
+                'title' => 'Markets digest earnings-week volatility',
+                'source' => 'CNBC',
+                'time' => '2h ago',
+            ],
+            [
+                'title' => 'First-ever 3x levered bitcoin funds launch in Europe',
+                'source' => 'MarketWatch',
+                'time' => '5h ago',
+            ],
+            [
+                'title' => 'Global bond buyers eye U.S. debt ahead of FOMC minutes',
+                'source' => 'Bloomberg',
+                'time' => '8h ago',
+            ],
+        ];
+
+        return [
+            'user' => [
+                'name' => $user->name,
+                'greeting' => 'Welcome back, ' . $user->name . '!',
+                'total_balance' => (float) (($user->balance ?? 0)
+                    + ($user->trading_balance ?? 0)
+                    + ($user->holding_balance ?? 0)
+                    + ($user->staking_balance ?? 0)
+                    + ($user->profit ?? 0)
+                    + ($user->mining_balance ?? 0)),
+                'wallet_balance' => (float) ($user->balance ?? 0),
+                'pnl' => (float) ($user->profit ?? 0),
+                'buying_power' => (float) ($user->trading_balance ?? 0),
+            ],
+            'accountTabs' => $tabs,
+            'chartData' => $payload['portfolioChartData'],
+            'watchlist' => $watchlist,
+            'activity' => $activity,
+            'openTrades' => $openTrades,
+            'news' => $news,
+            'routes' => [
+                'trade' => route('user.nav.trade'),
+            ],
+        ];
     }
 }

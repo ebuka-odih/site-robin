@@ -1,6 +1,6 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app-CptCzHh3.css",
+    "file": "assets/app-B7kiRHBQ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -8,6 +8,12 @@
     "file": "assets/app-CCNORQO9.js",
     "name": "app",
     "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/dashboard.jsx": {
+    "file": "assets/dashboard-CCBVEXwm.js",
+    "name": "dashboard",
+    "src": "resources/js/dashboard.jsx",
     "isEntry": true
   }
 }

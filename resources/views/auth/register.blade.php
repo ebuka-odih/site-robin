@@ -12,6 +12,13 @@
     <input type="text" name="hp_tag_b" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true" data-lpignore="true">
     <input type="text" name="hp_tag_c" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true" data-lpignore="true">
     <input type="hidden" name="registration_time" value="{{ time() }}">
+    <input type="hidden" name="referral_code" value="{{ session('referrer_code') }}">
+
+    @if(session('status'))
+        <p class="rounded-2xl border border-[#1fff9c]/40 bg-[#071c11] px-4 py-3 text-sm text-[#1fff9c]">
+            {{ session('status') }}
+        </p>
+    @endif
 
     <div class="space-y-2">
         <label for="name" class="text-xs uppercase tracking-wide text-gray-400">Full Name</label>

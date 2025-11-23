@@ -23,12 +23,24 @@
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Google Fonts: Inter and JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Vite assets (uncomment when running npm run dev) -->
     {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
     
     @livewireStyles
     
     <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
         [x-cloak] { display: none !important; }
         
         /* Theme CSS Variables */
@@ -241,7 +253,7 @@
     <div class="h-screen bg-black flex flex-col">
         <!-- Page Content -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-black pb-32">
-            <div class="mx-auto max-w-5xl px-4 py-10">
+            <div class="mx-auto max-w-5xl px-2 sm:px-4 py-6 sm:py-10">
                 @yield('content')
             </div>
         </main>

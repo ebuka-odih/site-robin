@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use App\Models\Referral;
 
 class User extends Authenticatable
 {
@@ -42,6 +43,8 @@ class User extends Authenticatable
         'telegram',
         'avatar',
         'subscription',
+        'referral_code',
+        'referred_by_id',
         'package_id',
         'currency',
         'trader',
@@ -111,6 +114,16 @@ class User extends Authenticatable
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    public function referredBy()
+    {
+        return $this->belongsTo(User::class, 'referred_by_id');
     }
 
     public function trades()

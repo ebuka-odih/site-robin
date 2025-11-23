@@ -53,5 +53,37 @@
             Open Profile Settings
         </a>
     </div>
+
+    <div class="rounded-[32px] border border-[#111] bg-[#050505] p-6 space-y-4">
+        <div class="space-y-1">
+            <p class="text-[11px] uppercase tracking-[0.3em] text-[#8f7dfd]">Referral</p>
+            <p class="text-base font-semibold">Share your invite link</p>
+            <p class="text-sm text-gray-400">Earn rewards when friends join {{ config('app.name') }} using your link.</p>
+        </div>
+        @php($referralLink = route('referral.link', $user->referral_code))
+        <div class="flex flex-col gap-3 md:flex-row">
+            <input id="referralLinkInput" value="{{ $referralLink }}" readonly class="flex-1 rounded-2xl border border-[#1f1f1f] bg-[#020202] px-4 py-3 text-sm text-gray-200 focus:outline-none">
+            <button type="button" data-copy-target="#referralLinkInput" class="rounded-2xl border border-[#5c28ff]/40 px-4 py-3 text-sm font-semibold text-[#5c28ff] hover:bg-[#5c28ff]/10">
+                Copy link
+            </button>
+        </div>
+    </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-copy-target]').forEach(button => {
+        button.addEventListener('click', () => {
+            const target = document.querySelector(button.dataset.copyTarget);
+            if (! target) return;
+            target.select();
+            document.execCommand('copy');
+            button.textContent = 'Copied!';
+            setTimeout(() => button.textContent = 'Copy link', 2000);
+        });
+    });
+});
+</script>
+@endpush
