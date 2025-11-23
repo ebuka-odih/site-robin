@@ -23,29 +23,39 @@ use App\Http\Controllers\KycController;
 use App\Http\Controllers\LiveTradingController;
 use App\Http\Controllers\OverviewController;
 use App\Http\Controllers\AiTraderController;
+use App\Http\Controllers\ReferralController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'pages.new-index')->name('index');
-Route::view('products', 'pages.products')->name('products');
-Route::view('market', 'pages.market')->name('market');
-Route::view('about', 'pages.about')->name('about');
-Route::view('contact', 'pages.contact')->name('contact');
-Route::view('terms', 'pages.terms')->name('terms');
-Route::view('privacy', 'pages.privacy')->name('privacy');
-Route::view('faq', 'pages.faq')->name('faq');
+$enforceAuthLanding = function () {
+    if (auth()->check()) {
+        return redirect()->route('user.dashboard');
+    }
+
+    return redirect()->route('login');
+};
+
+Route::get('/', $enforceAuthLanding)->name('index');
+Route::get('products', $enforceAuthLanding)->name('products');
+Route::get('market', $enforceAuthLanding)->name('market');
+Route::get('about', $enforceAuthLanding)->name('about');
+Route::get('contact', $enforceAuthLanding)->name('contact');
+Route::get('terms', $enforceAuthLanding)->name('terms');
+Route::get('privacy', $enforceAuthLanding)->name('privacy');
+Route::get('faq', $enforceAuthLanding)->name('faq');
+Route::get('ref/{code}', [ReferralController::class, 'handle'])->name('referral.link');
 
 // What we offer pages
-Route::view('stocks', 'pages.stocks')->name('stocks');
-Route::view('money-market-funds', 'pages.money-market-funds')->name('money-market-funds');
-Route::view('savings', 'pages.savings')->name('savings');
+Route::get('stocks', $enforceAuthLanding)->name('stocks');
+Route::get('money-market-funds', $enforceAuthLanding)->name('money-market-funds');
+Route::get('savings', $enforceAuthLanding)->name('savings');
 
 // AI Trader Routes (Public)
-Route::get('ai-traders', [AiTraderController::class, 'index'])->name('ai-traders.index');
-Route::get('ai-traders/plan/{plan}', [AiTraderController::class, 'showPlan'])->name('ai-traders.plan');
-Route::get('ai-traders/trader/{trader}', [AiTraderController::class, 'showTrader'])->name('ai-traders.trader');
-Route::get('ai-traders/trader/{trader}/performance', [AiTraderController::class, 'getPerformanceData'])->name('ai-traders.performance');
-Route::get('ai-traders/trader/{trader}/stats', [AiTraderController::class, 'getTraderStats'])->name('ai-traders.stats');
-Route::get('loading', [UserController::class, 'loading'])->name('loading');
+Route::get('ai-traders', $enforceAuthLanding)->name('ai-traders.index');
+Route::get('ai-traders/plan/{plan}', $enforceAuthLanding)->name('ai-traders.plan');
+Route::get('ai-traders/trader/{trader}', $enforceAuthLanding)->name('ai-traders.trader');
+Route::get('ai-traders/trader/{trader}/performance', $enforceAuthLanding)->name('ai-traders.performance');
+Route::get('ai-traders/trader/{trader}/stats', $enforceAuthLanding)->name('ai-traders.stats');
+Route::get('loading', $enforceAuthLanding)->name('loading');
 
 // Email template preview route (for development/testing)
 Route::view('email-preview', 'email-preview')->name('email.preview');
