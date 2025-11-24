@@ -84,7 +84,7 @@ const LoadingSkeleton = () => (
 );
 
 const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIVE', '1D', '1W', '1M', '3M', 'YTD', '1Y'] }) => {
-    const [activeRange, setActiveRange] = useState('1D');
+    const [activeRange, setActiveRange] = useState('LIVE');
     const [isLoading, setIsLoading] = useState(true);
     const [chartDataState, setChartDataState] = useState([]);
 
@@ -152,17 +152,81 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
 
         if (balance <= 0) {
             // Generate zero baseline data
-            const points = 30;
+            const points = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? 12 : activeRange === '1Y' ? 365 : 30;
             const now = new Date();
-            const daysAgo = activeRange === 'LIVE' ? 1 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
+            const daysAgo = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
             
             return Array(points + 1).fill(0).map((_, i) => {
                 const date = new Date(now);
-                date.setDate(date.getDate() - (daysAgo * (points - i) / points));
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
+                
+                // Calculate date based on timeframe (same logic as main generation)
+                if (activeRange === '1D') {
+                    // For 1D, show yesterday and today (2 days)
+                    date.setDate(date.getDate() - (1 - i));
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                } else if (activeRange === '1W') {
+                    date.setDate(date.getDate() - (7 - i));
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                } else if (activeRange === 'LIVE') {
+                    // For LIVE (1 month), show each day from 30 days ago to today
+                    date.setDate(date.getDate() - (30 - i));
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                } else if (activeRange === '1Y') {
+                    // For 1Y, show daily data points across the year (365 days)
+                    date.setDate(date.getDate() - (365 - i));
+                    date.setHours(0);
+                    date.setMinutes(0);
+                    date.setSeconds(0);
+                } else {
+                    date.setDate(date.getDate() - (daysAgo * (points - i) / points));
+                }
+                
+                // Format label based on timeframe
+                let label;
+                if (activeRange === '1D') {
+                    // Show dates for 1D (yesterday and today) - format: "Nov 23", "Nov 24"
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === '1W') {
+                    // Show dates for 7 days - format: "Nov 19", "Nov 20", etc.
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === 'LIVE') {
+                    // Show month and day for LIVE (30 days) - format: "Oct 27", "Nov 1", etc.
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === '1M') {
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === '3M') {
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === '1Y') {
+                    // Show dates for 1Y - format: "Dec 23", "Jan 6", "Feb 3", etc.
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                } else if (activeRange === 'YTD') {
+                    label = date.toLocaleDateString('en-US', { month: 'short' });
+                } else {
+                    const month = date.toLocaleDateString('en-US', { month: 'short' });
+                    const day = date.getDate();
+                    label = `${month} ${day}`;
+                }
+                
                 return {
-                    label: `${month} ${day}`,
+                    label,
                     value: 0,
                     timestamp: date.getTime(),
                 };
@@ -170,11 +234,12 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
         }
 
         // Determine number of points based on timeframe for smooth visualization
-        const points = activeRange === 'LIVE' ? 24 : activeRange === '1D' ? 24 : activeRange === '1W' ? 28 : activeRange === '1M' ? 30 : activeRange === '3M' ? 36 : activeRange === 'YTD' ? 12 : activeRange === '1Y' ? 52 : 30;
+        // More points = smoother chart and better date granularity
+        const points = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? 12 : activeRange === '1Y' ? 365 : 30;
         
         const data = [];
         const now = new Date();
-        const daysAgo = activeRange === 'LIVE' ? 1 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
+        const daysAgo = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
         
         // Start from 75-90% of current balance for visible growth
         const startPercentage = 0.75 + (balance * 0.00001 % 0.15); // Deterministic but varied
@@ -185,7 +250,36 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
         
         for (let i = 0; i <= points; i++) {
             const date = new Date(now);
-            date.setDate(date.getDate() - (daysAgo * (points - i) / points));
+            
+            // Calculate date based on timeframe
+            if (activeRange === '1D') {
+                // For 1D, show yesterday and today (2 days)
+                date.setDate(date.getDate() - (1 - i));
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+            } else if (activeRange === '1W') {
+                // For 7 days, go back by days (show each day)
+                date.setDate(date.getDate() - (7 - i));
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+            } else if (activeRange === 'LIVE') {
+                // For LIVE (1 month), show each day from 30 days ago to today
+                date.setDate(date.getDate() - (30 - i));
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+            } else if (activeRange === '1Y') {
+                // For 1Y, show daily data points across the year (365 days)
+                date.setDate(date.getDate() - (365 - i));
+                date.setHours(0);
+                date.setMinutes(0);
+                date.setSeconds(0);
+            } else {
+                // For other timeframes, use days
+                date.setDate(date.getDate() - (daysAgo * (points - i) / points));
+            }
             
             // Progress from 0 to 1
             const progress = i / points;
@@ -215,20 +309,41 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
             
             // Format label based on timeframe
             let label;
-            if (activeRange === 'LIVE' || activeRange === '1D') {
-                // Show hours for intraday
-                const hour = date.getHours();
-                const period = hour >= 12 ? 'PM' : 'AM';
-                const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                label = `${displayHour}${period}`;
+            if (activeRange === '1D') {
+                // Show dates for 1D (yesterday and today) - format: "Nov 23", "Nov 24"
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
             } else if (activeRange === '1W') {
-                // Show day names
-                label = date.toLocaleDateString('en-US', { weekday: 'short' });
-            } else if (activeRange === 'YTD' || activeRange === '1Y') {
-                // Show month names
+                // Show dates for 7 days - format: "Nov 19", "Nov 20", etc.
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
+            } else if (activeRange === 'LIVE') {
+                // Show month and day for LIVE (30 days) - format: "Oct 27", "Nov 1", etc.
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
+            } else if (activeRange === '1M') {
+                // Show month and day for 1 month
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
+            } else if (activeRange === '3M') {
+                // Show month and day for 3 months
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
+            } else if (activeRange === '1Y') {
+                // Show dates for 1Y - format: "Dec 23", "Jan 6", "Feb 3", etc.
+                const month = date.toLocaleDateString('en-US', { month: 'short' });
+                const day = date.getDate();
+                label = `${month} ${day}`;
+            } else if (activeRange === 'YTD') {
+                // Show month names for YTD
                 label = date.toLocaleDateString('en-US', { month: 'short' });
             } else {
-                // Show month and day
+                // Default: Show month and day
                 const month = date.toLocaleDateString('en-US', { month: 'short' });
                 const day = date.getDate();
                 label = `${month} ${day}`;
@@ -331,6 +446,75 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
     // Get domain for Y-axis - Robinhood-style with proper scaling
     const domain = [Math.max(0, minValue), maxValue];
 
+    // Calculate X-axis configuration based on timeframe
+    const xAxisConfig = useMemo(() => {
+        if (activeRange === '1D') {
+            // 1D: show yesterday and today (2 dates)
+            return {
+                interval: 0, // Show both dates
+                angle: 0,
+                textAnchor: 'middle',
+                height: 30,
+            };
+        } else if (activeRange === '1W') {
+            // 7 days: show all dates
+            return {
+                interval: 0,
+                angle: 0,
+                textAnchor: 'middle',
+                height: 30,
+            };
+        } else if (activeRange === 'LIVE') {
+            // LIVE (30 days): show dates with professional spacing - every 5 days
+            // This shows approximately 6-7 dates across 30 days for clean, professional look
+            return {
+                interval: 4, // Show every 5th date (0, 5, 10, 15, 20, 25, 30)
+                angle: 0,
+                textAnchor: 'middle',
+                height: 35,
+            };
+        } else if (activeRange === '1M') {
+            // 1 month: show dates with professional spacing - similar to LIVE
+            return {
+                interval: 4, // Show every 5th date for clean spacing
+                angle: 0,
+                textAnchor: 'middle',
+                height: 35,
+            };
+        } else if (activeRange === '3M') {
+            // 3 months: show weekly
+            return {
+                interval: 6,
+                angle: -45,
+                textAnchor: 'end',
+                height: 50,
+            };
+        } else if (activeRange === '1Y') {
+            // 1Y: show dates with professional spacing across the year
+            return {
+                interval: 29, // Show approximately every 30th date for clean spacing (about 12 dates across the year)
+                angle: 0,
+                textAnchor: 'middle',
+                height: 35,
+            };
+        } else if (activeRange === 'YTD') {
+            // YTD: show all months horizontally
+            return {
+                interval: 0, // Show all months
+                angle: 0,
+                textAnchor: 'middle',
+                height: 30,
+            };
+        } else {
+            return {
+                interval: 'preserveStartEnd',
+                angle: 0,
+                textAnchor: 'middle',
+                height: 30,
+            };
+        }
+    }, [activeRange]);
+
     if (isLoading) {
         return <LoadingSkeleton />;
     }
@@ -382,7 +566,12 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                             data={chartDataState}
-                            margin={{ top: 5, right: 5, left: 5, bottom: 25 }}
+                            margin={{ 
+                                top: 5, 
+                                right: 10, 
+                                left: 5, 
+                                bottom: xAxisConfig.angle !== 0 ? 50 : (activeRange === 'LIVE' || activeRange === '1M' || activeRange === '1Y' ? 35 : 25)
+                            }}
                         >
                             <CartesianGrid
                                 strokeDasharray="3 3"
@@ -397,8 +586,12 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                                 tick={{ fill: '#666', fontSize: 10 }}
                                 axisLine={false}
                                 tickLine={false}
-                                interval="preserveStartEnd"
-                                tickMargin={8}
+                                interval={xAxisConfig.interval}
+                                tickMargin={10}
+                                angle={xAxisConfig.angle}
+                                textAnchor={xAxisConfig.textAnchor}
+                                height={xAxisConfig.height}
+                                minTickGap={activeRange === 'LIVE' ? 50 : undefined}
                             />
                             <YAxis
                                 hide
