@@ -53,17 +53,14 @@ const NeoDashboard = ({
     
     const buyingPower = user.buying_power ?? formatCurrency(user.buying_power || 0);
 
-    // Calculate portfolio value (balance + profit) for chart
-    const portfolioValue = user.total_balance 
-        ? user.total_balance 
-        : (parseFloat(investingTab.balance?.replace(/[^0-9.-]+/g, '') || '0') + 
-           parseFloat(user.pnl || 0) || 0);
+    // Use PNL (profit) value for chart
+    const pnlValue = user.pnl || pnlTab.raw_balance || 0;
     
-    // Extract numeric balance for chart (use total portfolio value: balance + profit)
-    const currentBalanceValue = typeof portfolioValue === 'number' 
-        ? portfolioValue 
+    // Extract numeric PNL for chart
+    const currentBalanceValue = typeof pnlValue === 'number' 
+        ? pnlValue 
         : parseFloat(
-            String(portfolioValue).replace(/[^0-9.-]+/g, '') || '0'
+            String(pnlValue).replace(/[^0-9.-]+/g, '') || '0'
         ) || 0;
 
     // Timeframe buttons
@@ -91,17 +88,19 @@ const NeoDashboard = ({
                 </h1>
             </div>
 
-            {/* Investing and PNL Cards */}
+            {/* Investing and Wallet Balance Cards */}
             <AccountCards
                 investingTab={investingTab}
-                pnlTab={pnlTab}
+                walletTab={walletTab}
                 isBalanceHidden={isBalanceHidden}
                 onToggleBalanceVisibility={toggleBalanceVisibility}
             />
 
-            {/* BALANCE Section */}
+            {/* PNL Section */}
             <BalanceSection
-                totalBalance={totalBalance}
+                profit={profit}
+                profitChange={profitChange}
+                profitIsPositive={profitIsPositive}
                 isBalanceHidden={isBalanceHidden}
             />
 

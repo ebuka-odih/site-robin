@@ -61,7 +61,7 @@ const CustomTooltip = ({ active, payload, label }) => {
                         color: 'rgb(0, 255, 0)' 
                     }}
                 >
-                    <span className="recharts-tooltip-item-name">Portfolio Value</span>
+                    <span className="recharts-tooltip-item-name">PNL</span>
                     <span className="recharts-tooltip-item-separator"> : </span>
                     <span className="recharts-tooltip-item-value">${formattedValue}</span>
                 </li>
@@ -91,15 +91,15 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
     // Get available ranges from chartData
     const availableRanges = useMemo(() => {
         if (!chartData || typeof chartData !== 'object') return [];
-        const account = 'wallet';
+        const account = 'pnl';
         return chartData[account] ? Object.keys(chartData[account]) : [];
     }, [chartData]);
 
-    // Process chart data with smooth transitions - scale to match current balance
+    // Process chart data from backend - use it directly
     const processedChartData = useMemo(() => {
         if (!chartData || typeof chartData !== 'object') return null;
-        
-        const account = 'wallet';
+
+        const account = 'pnl';
         const series = chartData[account]?.[activeRange];
         
         if (!series || !series.labels || !series.data) return null;
@@ -109,241 +109,113 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
         
         if (values.length === 0 || labels.length === 0) return null;
         
-        // Scale the data to match current balance (show growth from bottom)
-        const lastValue = values[values.length - 1] || currentBalance;
-        const firstValue = values[0] || (currentBalance * 0.75);
-        
-        // If we have valid data, scale it to end at current balance
-        let scaleFactor = 1;
-        if (lastValue > 0 && currentBalance > 0) {
-            scaleFactor = currentBalance / lastValue;
-        }
-        
-        // Apply scaling to show growth from bottom up
-        const scaledValues = values.map((val, idx) => {
-            if (idx === values.length - 1) {
-                // Last value should be exactly current balance
-                return currentBalance;
-            }
-            // Scale intermediate values proportionally
-            const scaled = val * scaleFactor;
-            // Ensure values grow from bottom (first value should be lower)
-            const minValue = currentBalance * 0.7;
-            const maxValue = currentBalance;
-            const progress = idx / (values.length - 1);
-            // Blend scaled value with a bottom-up progression
-            const bottomUpValue = minValue + (maxValue - minValue) * progress;
-            // Use weighted average to maintain data shape while ensuring bottom-up growth
-            return scaled * 0.7 + bottomUpValue * 0.3;
-        });
-
+        // Use backend data directly - it's already structured correctly
         return labels.map((label, idx) => ({
             label,
-            value: scaledValues[idx] ?? 0,
-            timestamp: new Date(label).getTime(),
+            value: values[idx] ?? 0,
+            timestamp: Date.now() - (values.length - idx) * 86400000, // Approximate timestamp
         })).filter(item => item.value > 0);
-    }, [chartData, activeRange, currentBalance]);
+    }, [chartData, activeRange]);
 
-    // Generate realistic portfolio chart data - professional like Robinhood
+    // Generate fallback chart data using current balance
     const generateDefaultData = useMemo(() => {
+        const now = new Date();
+        const data = [];
+
+        // Get current balance (portfolio value)
         const balance = parseFloat(
             String(currentBalance).replace(/[^0-9.-]+/g, '') || '0'
-        );
+        ) || 0;
 
+        // If no balance, return empty
         if (balance <= 0) {
-            // Generate zero baseline data
-            const points = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? 12 : activeRange === '1Y' ? 365 : 30;
-            const now = new Date();
-            const daysAgo = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
-            
-            return Array(points + 1).fill(0).map((_, i) => {
-                const date = new Date(now);
-                
-                // Calculate date based on timeframe (same logic as main generation)
-                if (activeRange === '1D') {
-                    // For 1D, show yesterday and today (2 days)
-                    date.setDate(date.getDate() - (1 - i));
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-                } else if (activeRange === '1W') {
-                    date.setDate(date.getDate() - (7 - i));
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-                } else if (activeRange === 'LIVE') {
-                    // For LIVE (1 month), show each day from 30 days ago to today
-                    date.setDate(date.getDate() - (30 - i));
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-                } else if (activeRange === '1Y') {
-                    // For 1Y, show daily data points across the year (365 days)
-                    date.setDate(date.getDate() - (365 - i));
-                    date.setHours(0);
-                    date.setMinutes(0);
-                    date.setSeconds(0);
-                } else {
-                    date.setDate(date.getDate() - (daysAgo * (points - i) / points));
-                }
-                
-                // Format label based on timeframe
-                let label;
-                if (activeRange === '1D') {
-                    // Show dates for 1D (yesterday and today) - format: "Nov 23", "Nov 24"
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === '1W') {
-                    // Show dates for 7 days - format: "Nov 19", "Nov 20", etc.
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === 'LIVE') {
-                    // Show month and day for LIVE (30 days) - format: "Oct 27", "Nov 1", etc.
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === '1M') {
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === '3M') {
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === '1Y') {
-                    // Show dates for 1Y - format: "Dec 23", "Jan 6", "Feb 3", etc.
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                } else if (activeRange === 'YTD') {
-                    label = date.toLocaleDateString('en-US', { month: 'short' });
-                } else {
-                    const month = date.toLocaleDateString('en-US', { month: 'short' });
-                    const day = date.getDate();
-                    label = `${month} ${day}`;
-                }
-                
-                return {
-                    label,
-                    value: 0,
-                    timestamp: date.getTime(),
-                };
-            });
+            return [];
         }
 
-        // Determine number of points based on timeframe for smooth visualization
-        // More points = smoother chart and better date granularity
-        const points = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? 12 : activeRange === '1Y' ? 365 : 30;
-        
-        const data = [];
-        const now = new Date();
-        const daysAgo = activeRange === 'LIVE' ? 30 : activeRange === '1D' ? 1 : activeRange === '1W' ? 7 : activeRange === '1M' ? 30 : activeRange === '3M' ? 90 : activeRange === 'YTD' ? (now.getMonth() * 30 + now.getDate()) : activeRange === '1Y' ? 365 : 1;
-        
-        // Start from 75-90% of current balance for visible growth
-        const startPercentage = 0.75 + (balance * 0.00001 % 0.15); // Deterministic but varied
-        const startBalance = balance * startPercentage;
-        
-        // Create a seed based on balance for consistent but varied patterns
-        const seed = Math.floor(balance / 1000) % 1000;
-        
-        for (let i = 0; i <= points; i++) {
-            const date = new Date(now);
-            
+        // Calculate start value (80% of current balance for visible growth)
+        const startValue = balance * 0.80;
+        const endValue = balance;
+        const valueRange = endValue - startValue;
+
+        // Define timeframe configurations
+        let numPoints, daysPerPoint;
+
+        switch (activeRange) {
+            case 'LIVE':
+                numPoints = 31; // 30 days + today
+                daysPerPoint = 1;
+                break;
+            case '1D':
+                numPoints = 2; // Yesterday and today
+                daysPerPoint = 1;
+                break;
+            case '1W':
+                numPoints = 7; // 7 days
+                daysPerPoint = 1;
+                break;
+            case '1M':
+                numPoints = 5; // 4 weeks + today
+                daysPerPoint = 7;
+                break;
+            case '3M':
+                numPoints = 91; // 90 days + today
+                daysPerPoint = 1;
+                break;
+            case 'YTD':
+                numPoints = now.getMonth() + 1; // Months from Jan to current
+                daysPerPoint = 30;
+                break;
+            case '1Y':
+                numPoints = 366; // 365 days + today
+                daysPerPoint = 1;
+                break;
+            default:
+                numPoints = 31;
+                daysPerPoint = 1;
+        }
+
+        for (let i = 0; i < numPoints; i++) {
+            let date = new Date(now);
+
             // Calculate date based on timeframe
-            if (activeRange === '1D') {
-                // For 1D, show yesterday and today (2 days)
-                date.setDate(date.getDate() - (1 - i));
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            } else if (activeRange === '1W') {
-                // For 7 days, go back by days (show each day)
-                date.setDate(date.getDate() - (7 - i));
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            } else if (activeRange === 'LIVE') {
-                // For LIVE (1 month), show each day from 30 days ago to today
-                date.setDate(date.getDate() - (30 - i));
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
-            } else if (activeRange === '1Y') {
-                // For 1Y, show daily data points across the year (365 days)
-                date.setDate(date.getDate() - (365 - i));
-                date.setHours(0);
-                date.setMinutes(0);
-                date.setSeconds(0);
+            if (activeRange === 'YTD') {
+                // For YTD, go back by months
+                date.setMonth(date.getMonth() - (numPoints - 1 - i));
+                if (i < numPoints - 1) {
+                    date.setDate(1);
+                }
+            } else if (activeRange === '1M') {
+                // For 1M, go back by weeks
+                const weeksBack = (numPoints - 1 - i) * 7;
+                date.setDate(date.getDate() - weeksBack);
             } else {
-                // For other timeframes, use days
-                date.setDate(date.getDate() - (daysAgo * (points - i) / points));
+                // For others, go back by days
+                const daysBack = (numPoints - 1 - i) * daysPerPoint;
+                date.setDate(date.getDate() - daysBack);
             }
-            
-            // Progress from 0 to 1
-            const progress = i / points;
-            
-            // Base growth curve (easing function for natural growth)
-            const easeOut = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
-            
-            // Linear base value from start to current balance
-            const baseValue = startBalance + (balance - startBalance) * easeOut;
-            
-            // Add realistic market fluctuations using multiple sine waves
-            const wave1 = Math.sin((i + seed) * 0.3) * 0.015 * balance; // Short-term volatility
-            const wave2 = Math.sin((i + seed) * 0.1) * 0.03 * balance; // Medium-term trends
-            const wave3 = Math.sin((i + seed * 2) * 0.05) * 0.02 * balance; // Longer-term cycles
-            
-            // Random walk component (deterministic based on seed)
-            const randomWalk = (Math.sin((i * 7 + seed * 3) * 1.7) % 1) * 0.01 * balance;
-            
-            // Combine all components
-            const value = baseValue + wave1 + wave2 + wave3 + randomWalk;
-            
-            // Clamp to reasonable bounds (never go below 70% of start, or above 105% of balance)
-            const finalValue = Math.max(
-                startBalance * 0.70, 
-                Math.min(balance * 1.05, value)
-            );
+
+            date.setHours(0, 0, 0, 0);
+
+            // Calculate value with smooth growth curve (easing function)
+            const progress = i / (numPoints - 1);
+            const easeOut = 1 - Math.pow(1 - progress, 2); // Quadratic ease-out for smooth curve
+            const baseValue = startValue + (valueRange * easeOut);
+
+            // Add small realistic fluctuations (using fixed seed for consistency)
+            const seed = 123; // Fixed seed for consistent demo
+            const fluctuation = Math.sin((i + seed) * 0.5) * 0.015 * endValue; // Small variations
+            const value = Math.max(startValue * 0.95, baseValue + fluctuation);
             
             // Format label based on timeframe
             let label;
-            if (activeRange === '1D') {
-                // Show dates for 1D (yesterday and today) - format: "Nov 23", "Nov 24"
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
-            } else if (activeRange === '1W') {
-                // Show dates for 7 days - format: "Nov 19", "Nov 20", etc.
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
-            } else if (activeRange === 'LIVE') {
-                // Show month and day for LIVE (30 days) - format: "Oct 27", "Nov 1", etc.
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
-            } else if (activeRange === '1M') {
-                // Show month and day for 1 month
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
-            } else if (activeRange === '3M') {
-                // Show month and day for 3 months
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
-            } else if (activeRange === '1Y') {
-                // Show dates for 1Y - format: "Dec 23", "Jan 6", "Feb 3", etc.
-                const month = date.toLocaleDateString('en-US', { month: 'short' });
-                const day = date.getDate();
-                label = `${month} ${day}`;
+            if (activeRange === '1W') {
+                // Show day names: Mon, Tue, Wed, etc.
+                label = date.toLocaleDateString('en-US', { weekday: 'short' });
             } else if (activeRange === 'YTD') {
-                // Show month names for YTD
+                // Show month names: Jan, Feb, Mar, etc.
                 label = date.toLocaleDateString('en-US', { month: 'short' });
             } else {
-                // Default: Show month and day
+                // Show dates: "Nov 23", "Nov 24", etc.
                 const month = date.toLocaleDateString('en-US', { month: 'short' });
                 const day = date.getDate();
                 label = `${month} ${day}`;
@@ -351,18 +223,13 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
             
             data.push({
                 label,
-                value: finalValue,
+                value: i === numPoints - 1 ? endValue : value, // Last point is exact end value
                 timestamp: date.getTime(),
             });
         }
         
-        // Always ensure the last point is exactly the current balance
-        if (data.length > 0) {
-            data[data.length - 1].value = balance;
-        }
-        
         return data;
-    }, [currentBalance, activeRange]);
+    }, [activeRange, currentBalance]);
 
     // Set initial range - only run once on mount if needed
     useEffect(() => {
@@ -376,27 +243,29 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
         }
     }, []); // Only run once on mount
 
-    // Update chart data when balance or range changes - show growth from bottom
+    // Update chart data when range or balance changes
     useEffect(() => {
         setIsLoading(true);
         const timer = setTimeout(() => {
+            // Use backend data if available, otherwise use generated data
             const dataToUse = processedChartData || generateDefaultData;
-            
-            // Ensure data ends at current balance (for bottom-up growth visualization)
+
             if (dataToUse && dataToUse.length > 0) {
                 const updatedData = [...dataToUse];
-                // Always ensure last point is current balance
-                updatedData[updatedData.length - 1] = {
-                    ...updatedData[updatedData.length - 1],
-                    value: currentBalance || updatedData[updatedData.length - 1].value,
-                };
+                // Ensure last point is exactly current balance
+                if (currentBalance > 0 && updatedData.length > 0) {
+                    updatedData[updatedData.length - 1] = {
+                        ...updatedData[updatedData.length - 1],
+                        value: currentBalance,
+                    };
+                }
                 setChartDataState(updatedData);
             } else {
-                setChartDataState(dataToUse);
+                setChartDataState([]);
             }
-            
+
             setIsLoading(false);
-        }, 300);
+        }, 200);
 
         return () => clearTimeout(timer);
     }, [processedChartData, generateDefaultData, activeRange, currentBalance]);
@@ -474,20 +343,20 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                 height: 35,
             };
         } else if (activeRange === '1M') {
-            // 1 month: show dates with professional spacing - similar to LIVE
+            // 1 month: show weekly dates (4-5 weeks)
             return {
-                interval: 4, // Show every 5th date for clean spacing
+                interval: 0, // Show all weeks
                 angle: 0,
                 textAnchor: 'middle',
                 height: 35,
             };
         } else if (activeRange === '3M') {
-            // 3 months: show weekly
+            // 3 months: show every 15 days (approx 2 weeks)
             return {
-                interval: 6,
-                angle: -45,
-                textAnchor: 'end',
-                height: 50,
+                interval: 14,
+                angle: 0,
+                textAnchor: 'middle',
+                height: 35,
             };
         } else if (activeRange === '1Y') {
             // 1Y: show dates with professional spacing across the year
@@ -566,10 +435,10 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                             data={chartDataState}
-                            margin={{ 
-                                top: 5, 
-                                right: 10, 
-                                left: 5, 
+                            margin={{
+                                top: 5,
+                                right: 10,
+                                left: 5,
                                 bottom: xAxisConfig.angle !== 0 ? 50 : (activeRange === 'LIVE' || activeRange === '1M' || activeRange === '1Y' ? 35 : 25)
                             }}
                         >
@@ -592,6 +461,7 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                                 textAnchor={xAxisConfig.textAnchor}
                                 height={xAxisConfig.height}
                                 minTickGap={activeRange === 'LIVE' ? 50 : undefined}
+                                allowDuplicatedCategory={false}
                             />
                             <YAxis
                                 hide
@@ -653,8 +523,7 @@ const PortfolioChart = ({ chartData = {}, currentBalance = 0, timeframes = ['LIV
                                 e.stopPropagation();
                                 setActiveRange(timeframe);
                             }}
-                            className={`inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00ff63] disabled:pointer-events-none disabled:opacity-50 border shadow-xs active:shadow-none min-h-8 rounded-md px-2 text-xs h-7 font-semibold whitespace-nowrap transition-all duration-200 ${
-                                isActive
+                            className={`inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00ff63] disabled:pointer-events-none disabled:opacity-50 border shadow-xs active:shadow-none min-h-8 rounded-md px-2 text-xs h-7 font-semibold whitespace-nowrap transition-all duration-200 ${isActive
                                     ? 'bg-[#00ff63] text-black border-[#00ff63]'
                                     : 'bg-[#1a1a1a] border-[#1a1a1a] text-white hover:border-[#00ff63]/50 hover:bg-[#1f1f1f]'
                             }`}

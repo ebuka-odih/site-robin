@@ -2,7 +2,7 @@ import React from 'react';
 import CheckmarkIcon from './icons/CheckmarkIcon';
 import { maskBalance } from './utils';
 
-const AccountCards = ({ investingTab, pnlTab, isBalanceHidden, onToggleBalanceVisibility }) => {
+const AccountCards = ({ investingTab, walletTab, isBalanceHidden, onToggleBalanceVisibility }) => {
     return (
         <div className="grid grid-cols-2 gap-2">
             {/* Investing Card */}
@@ -34,7 +34,7 @@ const AccountCards = ({ investingTab, pnlTab, isBalanceHidden, onToggleBalanceVi
                 </div>
             </button>
 
-            {/* PNL Card */}
+            {/* Wallet Balance Card */}
             <button
                 type="button"
                 className="border-2 rounded-lg p-2.5 flex flex-col justify-between cursor-pointer relative overflow-hidden group animate-slide-up border-[#00ff63] bg-[#00ff63]/5 transition-all duration-300 hover:scale-105"
@@ -42,7 +42,7 @@ const AccountCards = ({ investingTab, pnlTab, isBalanceHidden, onToggleBalanceVi
             >
                 <div className="flex items-center justify-between">
                     <p className="text-xs uppercase font-semibold text-gray-400">
-                        {pnlTab.label || 'PNL'}
+                        {walletTab.label || 'Wallet Balance'}
                     </p>
                     <button
                         type="button"
@@ -55,10 +55,7 @@ const AccountCards = ({ investingTab, pnlTab, isBalanceHidden, onToggleBalanceVi
                 </div>
                 <div className="group-hover:scale-105 transition-transform duration-300">
                     <p className="text-base font-bold font-mono text-[#00ff63]">
-                        {maskBalance(isBalanceHidden, pnlTab.balance)}
-                    </p>
-                    <p className={`text-xs ${pnlTab.isPositive ? 'text-[#00ff63]' : 'text-red-400'}`}>
-                        {isBalanceHidden ? '***' : (pnlTab.change || '+0.00%')}
+                        {maskBalance(isBalanceHidden, walletTab.balance)}
                     </p>
                 </div>
             </button>

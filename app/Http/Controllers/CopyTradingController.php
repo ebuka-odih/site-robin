@@ -54,7 +54,8 @@ class CopyTradingController extends Controller
                 return redirect()->back()->with('error', 'Insufficient trading balance. You need at least $' . number_format($copyTrader->amount, 2));
             }
 
-            // Check if user has a stopped copy trade for this trader (only admin can restart)
+            // Check if user has a stopped copy trade for this trader
+            // If they do, they should use the resume function instead
             $stoppedCopy = CopiedTrade::where('user_id', $user->id)
                 ->where('copy_trader_id', $traderId)
                 ->where('status', 0)
@@ -65,10 +66,10 @@ class CopyTradingController extends Controller
                 if ($request->ajax()) {
                     return response()->json([
                         'error' => true,
-                        'message' => 'This copy trade has been stopped and cannot be restarted.'
+                        'message' => 'You have a stopped copy trade for this trader. Please use the resume option on the trade details page.'
                     ]);
                 }
-                return redirect()->back()->withInput()->with('error', 'This copy trade has been stopped and cannot be restarted.');
+                return redirect()->back()->withInput()->with('error', 'You have a stopped copy trade for this trader. Please use the resume option on the trade details page.');
             }
 
             // Check if user is already copying this trader
@@ -200,6 +201,76 @@ class CopyTradingController extends Controller
             DB::rollback();
             \Log::error('Stop copy trading error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'An error occurred while stopping the trade. Please try again.');
+        }
+    }
+
+    public function resume($id)
+    {
+        try {
+            DB::beginTransaction();
+
+            $copiedTrade = CopiedTrade::where('id', $id)
+                ->where('user_id', Auth::id())
+                ->with('copy_trader')
+                ->firstOrFail();
+
+            // Check if trade is actually stopped
+            if ($copiedTrade->status == 1) {
+                return redirect()->back()->with('error', 'This trade is already active');
+            }
+
+            if (!$copiedTrade->stopped_at) {
+                return redirect()->back()->with('error', 'This trade cannot be resumed');
+            }
+
+            $user = Auth::user();
+
+            // Check if user has sufficient trading balance
+            if ($copiedTrade->amount > $user->trading_balance) {
+                return redirect()->back()->with('error', 'Insufficient trading balance. You need at least $' . number_format($copiedTrade->amount, 2) . ' to resume this trade.');
+            }
+
+            // Check if user is already copying this trader with another active trade
+            $existingActiveCopy = CopiedTrade::where('user_id', $user->id)
+                ->where('copy_trader_id', $copiedTrade->copy_trader_id)
+                ->where('status', 1)
+                ->where('id', '!=', $copiedTrade->id)
+                ->first();
+
+            if ($existingActiveCopy) {
+                return redirect()->back()->with('error', 'You already have an active copy trade for this trader.');
+            }
+
+            // Resume the copied trade
+            $copiedTrade->status = 1; // Active
+            $copiedTrade->stopped_at = null;
+            $copiedTrade->save();
+
+            // Deduct amount from user trading balance
+            $user->trading_balance -= $copiedTrade->amount;
+            $user->save();
+
+            // Create notification for resumed copy trade
+            $user->createNotification(
+                'copy_trade_resumed',
+                'Copy Trade Resumed',
+                'You have successfully resumed copying ' . $copiedTrade->copy_trader->name . ' with $' . number_format($copiedTrade->amount, 2),
+                [
+                    'trader_id' => $copiedTrade->copy_trader->id,
+                    'trader_name' => $copiedTrade->copy_trader->name,
+                    'amount' => $copiedTrade->amount,
+                    'copied_trade_id' => $copiedTrade->id
+                ]
+            );
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Successfully resumed copying ' . $copiedTrade->copy_trader->name);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Resume copy trading error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'An error occurred while resuming the trade. Please try again.');
         }
     }
 }

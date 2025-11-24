@@ -241,6 +241,9 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     Route::get('profile', [UserController::class, 'profile'])->name('profile');
     Route::post('update/profile/{id}', [UserController::class, 'updateProfile'])->name('updateProfile');
     Route::post('update/password/', [UserController::class, 'updatePassword'])->name('updatePassword');
+    
+    // Portfolio Chart API
+    Route::get('portfolio-chart/data', [\App\Http\Controllers\PortfolioChartController::class, 'getChartData'])->name('portfolioChart.data');
 
     // Notification routes
     Route::get('notifications', [\App\Http\Controllers\User\NotificationController::class, 'index'])->name('notifications.index');
@@ -256,6 +259,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     Route::post('store/copy-trading', [CopyTradingController::class, 'store'])->name('copyTrading.store');
     Route::get('copy-trading/{id}', [CopyTradingController::class, 'detail'])->name('copyTrading.detail');
     Route::post('copy-trading/{id}/stop', [CopyTradingController::class, 'stop'])->name('copyTrading.stop');
+    Route::post('copy-trading/{id}/resume', [CopyTradingController::class, 'resume'])->name('copyTrading.resume');
     
 
     // Support routes

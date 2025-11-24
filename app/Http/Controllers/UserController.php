@@ -213,25 +213,12 @@ class UserController extends Controller
                 'raw_balance' => (float) ($user->balance ?? 0),
             ],
         ];
-        $portfolioChartData = [
-            'investing' => $this->buildPortfolioChartData(
-                $user,
-                'investing',
-                $investingBalanceRaw,
-                max(abs($investingChangePercent) / 100 * max($investingBalanceRaw, 1), 1)
-            ),
-            'pnl' => $this->buildPortfolioChartData(
-                $user,
-                'pnl',
-                (float) ($user->profit ?? 0),
-                max(abs($pnlChangeData['delta'] ?? 0), 1)
-            ),
-            'wallet' => $this->buildPortfolioChartData(
-                $user,
-                'wallet',
-                (float) ($user->balance ?? 0),
-                max(abs($walletChangeData['delta'] ?? 0), 1)
-            ),
+        // Get portfolio chart data from dedicated controller
+        $portfolioChartController = app(\App\Http\Controllers\PortfolioChartController::class);
+        $chartDataResponse = $portfolioChartController->getChartData(request());
+        $chartDataArray = $chartDataResponse->getData(true);
+        $portfolioChartData = $chartDataArray['data'] ?? [
+            'wallet' => []
         ];
 
         $reactProps = $this->buildReactDashboardProps($user, [
@@ -453,10 +440,12 @@ class UserController extends Controller
     {
         $now = Carbon::now();
         $timeframes = [
+            'LIVE' => $now->copy()->subDays(30),
             '1D' => $now->copy()->subDay(),
             '1W' => $now->copy()->subWeek(),
             '1M' => $now->copy()->subMonth(),
             '3M' => $now->copy()->subMonths(3),
+            'YTD' => $now->copy()->startOfYear(),
             '1Y' => $now->copy()->subYear(),
             'All' => $now->copy()->subYears(5),
         ];
@@ -523,18 +512,54 @@ class UserController extends Controller
     private function fallbackChartDataset(string $range, float $currentBalance, float $volatilityBase): array
     {
         $labelSets = [
+            'LIVE' => [], // Will be generated dynamically
             '1D' => ['9a', '10a', '11a', '12p', '1p', '2p', '3p'],
             '1W' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-            '1M' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            '3M' => ['Mar', 'Apr', 'May'],
+            '1M' => ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
+            '3M' => ['Month 1', 'Month 2', 'Month 3'],
+            'YTD' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
             '1Y' => ['Jan', 'Mar', 'May', 'Jul', 'Sep', 'Nov'],
             'All' => ['2019', '2020', '2021', '2022', '2023'],
         ];
 
-        $labels = $labelSets[$range] ?? $labelSets['1M'];
+        if ($range === 'LIVE') {
+            $labels = [];
+            for ($i = 30; $i >= 0; $i--) {
+                $labels[] = now()->subDays($i)->format('M d');
+            }
+        } elseif ($range === 'YTD') {
+            $labels = [];
+            $start = now()->startOfYear();
+            $months = $start->diffInMonths(now()) + 1;
+            for ($i = 0; $i < $months; $i++) {
+                $labels[] = $start->copy()->addMonths($i)->format('M');
+            }
+        } elseif ($range === '1W') {
+            $labels = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $labels[] = now()->subDays($i)->format('D');
+            }
+        } elseif ($range === '1D') {
+            $labels = [
+                now()->subDay()->format('M d'),
+                now()->format('M d')
+            ];
+        } elseif ($range === '3M') {
+            $labels = [];
+            for ($i = 90; $i >= 0; $i--) {
+                $labels[] = now()->subDays($i)->format('M d');
+            }
+        } elseif ($range === '1Y') {
+            $labels = [];
+            for ($i = 365; $i >= 0; $i--) {
+                $labels[] = now()->subDays($i)->format('M d');
+            }
+        } else {
+            $labels = $labelSets[$range] ?? $labelSets['1M'];
+        }
         $points = max(count($labels), 2);
         $endValue = max($currentBalance, 0);
-        $startValue = max($endValue - $profit, 0);
+        $startValue = max($endValue - $volatilityBase, 0);
         $series = $this->generateTrendSeries($points, $startValue, $endValue, $volatilityBase, $range);
 
         return [
@@ -548,9 +573,12 @@ class UserController extends Controller
     private function formatHistoryLabel(Carbon $timestamp, string $range): string
     {
         return match ($range) {
+            'LIVE' => $timestamp->format('M d'),
             '1D' => $timestamp->format('H:i'),
             '1W' => $timestamp->format('D'),
-            '1M', '3M' => $timestamp->format('M d'),
+            '1M' => $timestamp->format('M d'),
+            '3M' => $timestamp->format('M d'),
+            'YTD' => $timestamp->format('M'),
             '1Y', 'All' => $timestamp->format('M Y'),
             default => $timestamp->format('M d'),
         };

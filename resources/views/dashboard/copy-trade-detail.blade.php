@@ -22,6 +22,14 @@
                         Stop Copying
                     </button>
                 </form>
+            @elseif($copiedTrade->status == 0 && $copiedTrade->stopped_at)
+                <form action="{{ route('user.copyTrading.resume', $copiedTrade->id) }}" method="POST" onsubmit="return confirm('Resume copying {{ $trader->name }}? This will deduct ${{ number_format($copiedTrade->amount, 2) }} from your trading balance.')">
+                    @csrf
+                    <button type="submit" class="flex items-center gap-2 rounded-2xl border border-[#1fff9c]/40 bg-[#071c11] px-6 py-3 text-sm font-semibold text-[#1fff9c] transition hover:border-[#1fff9c] hover:bg-[#0a2515]">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Resume Bot
+                    </button>
+                </form>
             @endif
         </div>
         @if(session('success'))
@@ -147,6 +155,8 @@
         </a>
         @if($copiedTrade->status)
             <p class="text-xs text-gray-500">This position mirrors {{ $trader->name }} and updates automatically.</p>
+        @elseif($copiedTrade->stopped_at)
+            <p class="text-xs text-gray-500">This copy trade is stopped. Use the Resume Bot button above to reactivate it.</p>
         @else
             <p class="text-xs text-gray-500">This copy trade is inactive. Start a new one from the marketplace.</p>
         @endif
