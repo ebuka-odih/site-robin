@@ -369,30 +369,6 @@
             });
           </script>
 
-          <!-- Investment Plans Section -->
-          <li>
-            <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Investment Plans
-            </div>
-          </li>
-          <li>
-            <a href="{{ route('admin.plans.index') }}" class="{{ request()->routeIs('admin.plans.*') ? "active" : '' }} flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-                <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                </svg>
-                <span class="ml-3" sidebar-toggle-item>Package Plan</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ route('admin.signals.index') }}" class="{{ request()->routeIs('admin.signals.*') ? "active" : '' }} flex items-center p-2 text-base text-gray-900 rounded-lg hover:bg-gray-100 group dark:text-gray-200 dark:hover:bg-gray-700">
-                <svg class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span class="ml-3" sidebar-toggle-item>Signals</span>
-            </a>
-          </li>
-
-
           <!-- System Section -->
           <li>
             <div class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
