@@ -141,7 +141,9 @@ class CopyTradingController extends Controller
     {
         $copiedTrade = CopiedTrade::where('id', $id)
             ->where('user_id', Auth::id())
-            ->with('copy_trader')
+            ->with(['copy_trader', 'pnl_histories' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }])
             ->firstOrFail();
 
         // Get trader's recent performance data

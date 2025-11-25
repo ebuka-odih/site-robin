@@ -51,4 +51,9 @@ class CopiedTrade extends Model
     {
         return $this->status == 0;
     }
+
+    public function pnl_histories()
+    {
+        return $this->hasMany(CopiedTradePnlHistory::class, 'copied_trade_id');
+    }
 }

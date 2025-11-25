@@ -4,14 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CopiedTrade;
+use App\Models\CopiedTradePnlHistory;
 use Illuminate\Http\Request;
 
 class CopiedTradeController extends Controller
 {
     public function index()
     {
-        $copiedTrades = CopiedTrade::with(['user', 'copy_trader'])->orderBy('created_at','desc')->paginate(20);
+        $copiedTrades = CopiedTrade::with(['user', 'copy_trader', 'pnl_histories'])->orderBy('created_at','desc')->paginate(20);
         return view('admin.copy-trade.index', compact('copiedTrades'));
+    }
+
+    public function show($id)
+    {
+        $copiedTrade = CopiedTrade::with(['user', 'copy_trader', 'pnl_histories' => function($query) {
+            $query->orderBy('created_at', 'desc');
+        }])->findOrFail($id);
+        
+        return view('admin.copy-trade.show', compact('copiedTrade'));
     }
 
     public function editPnl(Request $request, $id)
@@ -142,5 +152,80 @@ class CopiedTradeController extends Controller
         $copiedTrade->delete();
         
         return redirect()->back()->with('success', 'Copied trade deleted successfully!');
+    }
+
+    public function getPnlHistory($id)
+    {
+        $copiedTrade = CopiedTrade::findOrFail($id);
+        $pnlHistories = $copiedTrade->pnl_histories()->orderBy('created_at', 'desc')->get();
+        
+        return response()->json($pnlHistories);
+    }
+
+    public function storePnlHistory(Request $request, $id)
+    {
+        $request->validate([
+            'pnl' => 'required|numeric',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $copiedTrade = CopiedTrade::findOrFail($id);
+        
+        $pnlHistory = CopiedTradePnlHistory::create([
+            'copied_trade_id' => $copiedTrade->id,
+            'pnl' => $request->pnl,
+            'description' => $request->description,
+        ]);
+
+        // Update the copied trade's PNL field by adding the new PNL entry
+        // This does NOT affect the user's profit field or balance
+        $copiedTrade->pnl = ($copiedTrade->pnl ?? 0) + $request->pnl;
+        $copiedTrade->save();
+
+        return redirect()->back()->with('success', 'PNL history entry added successfully!');
+    }
+
+    public function updatePnlHistory(Request $request, $pnlHistoryId)
+    {
+        $request->validate([
+            'pnl' => 'required|numeric',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $pnlHistory = CopiedTradePnlHistory::findOrFail($pnlHistoryId);
+        $copiedTrade = $pnlHistory->copied_trade;
+        
+        // Calculate the difference between old and new PNL
+        $oldPnL = $pnlHistory->pnl;
+        $newPnL = $request->pnl;
+        $difference = $newPnL - $oldPnL;
+        
+        // Update the PNL history entry
+        $pnlHistory->update([
+            'pnl' => $request->pnl,
+            'description' => $request->description,
+        ]);
+
+        // Update the copied trade's PNL field by applying the difference
+        // This does NOT affect the user's profit field or balance
+        $copiedTrade->pnl = ($copiedTrade->pnl ?? 0) + $difference;
+        $copiedTrade->save();
+
+        return redirect()->back()->with('success', 'PNL history entry updated successfully!');
+    }
+
+    public function destroyPnlHistory($pnlHistoryId)
+    {
+        $pnlHistory = CopiedTradePnlHistory::findOrFail($pnlHistoryId);
+        $copiedTrade = $pnlHistory->copied_trade;
+        
+        // Subtract the PNL from the copied trade's PNL field
+        // This does NOT affect the user's profit field or balance
+        $copiedTrade->pnl = max(0, ($copiedTrade->pnl ?? 0) - $pnlHistory->pnl);
+        $copiedTrade->save();
+        
+        $pnlHistory->delete();
+
+        return redirect()->back()->with('success', 'PNL history entry deleted successfully!');
     }
 }

@@ -149,6 +149,40 @@
         </div>
     </div>
 
+    <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 space-y-6">
+        <div class="flex flex-col gap-2">
+            <p class="text-xs uppercase tracking-[0.4em] text-gray-400">Performance</p>
+            <h2 class="text-2xl font-semibold">PNL History</h2>
+        </div>
+        @if($copiedTrade->pnl_histories && $copiedTrade->pnl_histories->count() > 0)
+            <div class="space-y-3">
+                @foreach($copiedTrade->pnl_histories as $pnlHistory)
+                    <div class="flex items-center gap-4 rounded-2xl border border-[#0e0e0e] bg-[#030303] px-4 py-3">
+                        <span class="h-3 w-3 rounded-full {{ $pnlHistory->pnl >= 0 ? 'bg-[#1fff9c]' : 'bg-red-400' }}"></span>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-semibold text-white">
+                                    {{ $pnlHistory->pnl >= 0 ? 'Profit' : 'Loss' }}
+                                </p>
+                                <p class="text-sm font-semibold {{ $pnlHistory->pnl >= 0 ? 'text-[#1fff9c]' : 'text-red-400' }}">
+                                    {{ $user->formatAmount($pnlHistory->pnl) }}
+                                </p>
+                            </div>
+                            @if($pnlHistory->description)
+                                <p class="text-xs text-gray-400 mt-1">{{ $pnlHistory->description }}</p>
+                            @endif
+                            <p class="text-xs text-gray-500 mt-1">{{ $pnlHistory->created_at->format('M d, Y \\a\\t g:i A') }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="rounded-2xl border border-[#0e0e0e] bg-[#030303] px-4 py-8 text-center">
+                <p class="text-sm text-gray-500">No PNL history entries yet.</p>
+            </div>
+        @endif
+    </div>
+
     <div class="rounded-[32px] border border-[#111111] bg-[#050505] p-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <a href="{{ route('user.copyTrading.index') }}" class="inline-flex items-center justify-center rounded-2xl border border-[#1a1a1a] px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white">
             Back to Copy Trading

@@ -81,10 +81,17 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
 
     // Copied trades history
     Route::get('/copied-trades', [CopiedTradeController::class, 'index'])->name('copied-trades.index');
+    Route::get('/copied-trades/{id}', [CopiedTradeController::class, 'show'])->name('copied-trades.show');
     Route::post('/copied-trades/{id}/edit-pnl', [CopiedTradeController::class, 'editPnl'])->name('copied-trades.edit-pnl');
     Route::post('/copied-trades/{id}/activate', [CopiedTradeController::class, 'activate'])->name('copied-trades.activate');
     Route::post('/copied-trades/{id}/deactivate', [CopiedTradeController::class, 'deactivate'])->name('copied-trades.deactivate');
     Route::delete('/copied-trades/{id}', [CopiedTradeController::class, 'destroy'])->name('copied-trades.destroy');
+    
+    // PNL History CRUD
+    Route::get('/copied-trades/{id}/pnl-history', [CopiedTradeController::class, 'getPnlHistory'])->name('copied-trades.pnl-history.index');
+    Route::post('/copied-trades/{id}/pnl-history', [CopiedTradeController::class, 'storePnlHistory'])->name('copied-trades.pnl-history.store');
+    Route::put('/copied-trades/pnl-history/{pnlHistoryId}', [CopiedTradeController::class, 'updatePnlHistory'])->name('copied-trades.pnl-history.update');
+    Route::delete('/copied-trades/pnl-history/{pnlHistoryId}', [CopiedTradeController::class, 'destroyPnlHistory'])->name('copied-trades.pnl-history.destroy');
 
     // Mining management
     Route::get('/mining', [MiningController::class, 'index'])->name('mining.index');
