@@ -25,6 +25,16 @@ class WithdrawalController extends Controller
 
     public function transferFunds(Request $request)
     {
+        $user = Auth::user();
+        
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been suspended. Please contact support for assistance.'
+            ], 403);
+        }
+        
         $validator = Validator::make($request->all(), [
             'from_account' => 'required|string|in:balance,trading_balance,mining_balance',
             'to_account' => 'required|string|in:balance,trading_balance,mining_balance|different:from_account',
@@ -37,8 +47,6 @@ class WithdrawalController extends Controller
                 'message' => $validator->errors()->first()
             ], 422);
         }
-
-        $user = Auth::user();
         $fromAccount = $request->from_account;
         $toAccount = $request->to_account;
         $amount = $request->amount;
@@ -132,6 +140,22 @@ class WithdrawalController extends Controller
     
     private function processWithdrawal(Request $request)
     {
+        $user = Auth::user();
+        
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            $message = 'Your account has been suspended. Please contact support for assistance.';
+            
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 403);
+            }
+            
+            return redirect()->route('user.withdrawal')->with('error', $message);
+        }
+        
         $rules = [
             'from_account' => 'required|string|in:balance,trading_balance,mining_balance',
             'payment_method' => 'required|string|in:crypto,bank,paypal',
@@ -171,8 +195,6 @@ class WithdrawalController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
-
-        $user = Auth::user();
         $fromAccount = $request->from_account;
         $amount = $request->amount;
 

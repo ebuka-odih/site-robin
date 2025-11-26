@@ -35,6 +35,13 @@ class DepositController extends Controller
      */
     public function payment(Request $request)
     {
+        // Check if user account is suspended
+        $user = Auth::user();
+        if ($user->isSuspended()) {
+            return redirect()->route('user.deposit')
+                           ->with('error', 'Your account has been suspended. Please contact support for assistance.');
+        }
+        
         \Log::info('Deposit payment request started', [
             'user_id' => Auth::id(),
             'amount' => $request->input('amount'),

@@ -67,6 +67,14 @@ class UserStakingController extends Controller
         }
 
         $user = Auth::user();
+        
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            return redirect()->back()
+                ->with('error', 'Your account has been suspended. Please contact support for assistance.')
+                ->withInput();
+        }
+        
         $plan = Plan::findOrFail($request->plan_id);
 
         // Verify it's a staking plan

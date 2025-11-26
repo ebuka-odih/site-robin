@@ -490,14 +490,25 @@
             </a>
 
             <!-- Deposit -->
-            <a href="{{ route('user.deposit') }}" class="flex flex-col items-center space-y-0.5 text-gray-400 hover:text-green-400 transition-colors">
-                <div class="w-7 h-7 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-green-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="w-4 h-4 text-gray-300" fill="currentColor">
-                        <path d="M17.12 9.88a2.997 2.997 0 1 0-4.24 4.24a2.997 2.997 0 1 0 4.24-4.24M7 6v12h16V6zm14 8c-.53 0-1.04.21-1.41.59c-.38.37-.59.88-.59 1.41h-8c0-.53-.21-1.04-.59-1.41c-.37-.38-.88-.59-1.41-.59v-4c.53 0 1.04-.21 1.41-.59c.38-.37.59-.88.59-1.41h8c0 .53.21 1.04.59 1.41c.37.38.88.59 1.41.59zM5 8H3c-.55 0-1-.45-1-1s.45-1 1-1h2zm0 5H2c-.55 0-1-.45-1-1s.45-1 1-1h3zm0 5H1c-.552 0-1-.45-1-1s.448-1 1-1h4z"/>
-                    </svg>
+            @if(auth()->user()->isSuspended())
+                <div class="flex flex-col items-center space-y-0.5 text-gray-500 opacity-50 cursor-not-allowed" title="Account suspended">
+                    <div class="w-7 h-7 bg-gray-700 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="w-4 h-4 text-gray-500" fill="currentColor">
+                            <path d="M17.12 9.88a2.997 2.997 0 1 0-4.24 4.24a2.997 2.997 0 1 0 4.24-4.24M7 6v12h16V6zm14 8c-.53 0-1.04.21-1.41.59c-.38.37-.59.88-.59 1.41h-8c0-.53-.21-1.04-.59-1.41c-.37-.38-.88-.59-1.41-.59v-4c.53 0 1.04-.21 1.41-.59c.38-.37.59-.88.59-1.41h8c0 .53.21 1.04.59 1.41c.37.38.88.59 1.41.59zM5 8H3c-.55 0-1-.45-1-1s.45-1 1-1h2zm0 5H2c-.55 0-1-.45-1-1s.45-1 1-1h3zm0 5H1c-.552 0-1-.45-1-1s.448-1 1-1h4z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium">Deposit</span>
                 </div>
-                <span class="text-xs font-medium">Deposit</span>
-            </a>
+            @else
+                <a href="{{ route('user.deposit') }}" class="flex flex-col items-center space-y-0.5 text-gray-400 hover:text-green-400 transition-colors">
+                    <div class="w-7 h-7 bg-gray-700 rounded-lg flex items-center justify-center hover:bg-green-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="w-4 h-4 text-gray-300" fill="currentColor">
+                            <path d="M17.12 9.88a2.997 2.997 0 1 0-4.24 4.24a2.997 2.997 0 1 0 4.24-4.24M7 6v12h16V6zm14 8c-.53 0-1.04.21-1.41.59c-.38.37-.59.88-.59 1.41h-8c0-.53-.21-1.04-.59-1.41c-.37-.38-.88-.59-1.41-.59v-4c.53 0 1.04-.21 1.41-.59c.38-.37.59-.88.59-1.41h8c0 .53.21 1.04.59 1.41c.37.38.88.59 1.41.59zM5 8H3c-.55 0-1-.45-1-1s.45-1 1-1h2zm0 5H2c-.55 0-1-.45-1-1s.45-1 1-1h3zm0 5H1c-.552 0-1-.45-1-1s.448-1 1-1h4z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium">Deposit</span>
+                </a>
+            @endif
 
             <!-- Portfolio -->
             <a href="{{ route('user.portfolio.index') }}" class="flex flex-col items-center space-y-0.5 text-gray-400 hover:text-purple-400 transition-colors">

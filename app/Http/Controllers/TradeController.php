@@ -45,6 +45,11 @@ class TradeController extends Controller
 
         $user = Auth::user();
 
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            return redirect()->back()->with('error', 'Your account has been suspended. Please contact support for assistance.');
+        }
+
         if (!$user->trader) {
             return redirect()->back()->with('error', 'To initiate a trade, please subscribe to a package first.');
         }
@@ -81,6 +86,11 @@ class TradeController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            return redirect()->back()->with('error', 'Your account has been suspended. Please contact support for assistance.');
+        }
 
         if (!$user->trader) {
             return redirect()->back()->with('error', 'To initiate a trade, please subscribe to a package first.');

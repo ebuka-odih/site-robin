@@ -54,6 +54,7 @@
         </a>
     </div>
 
+    @if($user->referral_code)
     <div class="rounded-[32px] border border-[#111] bg-[#050505] p-6 space-y-4">
         <div class="space-y-1">
             <p class="text-[11px] uppercase tracking-[0.3em] text-[#8f7dfd]">Referral</p>
@@ -68,6 +69,7 @@
             </button>
         </div>
     </div>
+    @endif
 </div>
 @endsection
 

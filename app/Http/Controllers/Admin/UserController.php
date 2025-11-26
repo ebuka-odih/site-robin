@@ -122,15 +122,82 @@ class UserController extends Controller
    public function updateStatus(Request $request, $id)
    {
        $request->validate([
-           'status' => 'required|in:active,inactive',
+           'status' => 'required|in:active,inactive,suspended',
        ]);
 
        $user = User::findOrFail($id);
        $user->status = $request->status;
        $user->save();
 
-       $statusText = $request->status === 'active' ? 'activated' : 'deactivated';
+       $statusText = match($request->status) {
+           'active' => 'activated',
+           'inactive' => 'deactivated',
+           'suspended' => 'suspended',
+           default => 'updated'
+       };
+       
+       // Send notification to user if suspended
+       if ($request->status === 'suspended') {
+           $user->createNotification(
+               'account_suspended',
+               'Account Suspended',
+               'Your account has been suspended by an administrator. Please contact support for more information.',
+               ['status' => 'suspended']
+           );
+       } elseif ($user->getOriginal('status') === 'suspended' && $request->status === 'active') {
+           $user->createNotification(
+               'account_reactivated',
+               'Account Reactivated',
+               'Your account has been reactivated. You can now access all features.',
+               ['status' => 'active']
+           );
+       }
+       
        return redirect()->back()->with('success', "User account has been {$statusText} successfully");
+   }
+
+   public function suspend($id)
+   {
+       $user = User::findOrFail($id);
+       
+       if ($user->status === 'suspended') {
+           return redirect()->back()->with('error', 'User account is already suspended.');
+       }
+       
+       $user->status = 'suspended';
+       $user->save();
+       
+       // Send notification to user
+       $user->createNotification(
+           'account_suspended',
+           'Account Suspended',
+           'Your account has been suspended by an administrator. Please contact support for more information.',
+           ['status' => 'suspended']
+       );
+       
+       return redirect()->back()->with('success', 'User account has been suspended successfully.');
+   }
+
+   public function unsuspend($id)
+   {
+       $user = User::findOrFail($id);
+       
+       if ($user->status !== 'suspended') {
+           return redirect()->back()->with('error', 'User account is not suspended.');
+       }
+       
+       $user->status = 'active';
+       $user->save();
+       
+       // Send notification to user
+       $user->createNotification(
+           'account_reactivated',
+           'Account Reactivated',
+           'Your account has been reactivated. You can now access all features.',
+           ['status' => 'active']
+       );
+       
+       return redirect()->back()->with('success', 'User account has been unsuspended successfully.');
    }
 
    public function verifyEmail($id)

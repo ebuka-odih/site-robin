@@ -155,6 +155,23 @@ class LiveTradingController extends Controller
 
         $user = Auth::user();
         
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            $message = 'Your account has been suspended. Please contact support for assistance.';
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 403);
+            }
+            
+            return redirect()
+                ->back()
+                ->withErrors(['trade' => $message])
+                ->withInput();
+        }
+        
         // Check if user has sufficient trading balance
         if ($request->amount > $user->trading_balance) {
             $message = 'Insufficient trading balance. You need at least $' . number_format($request->amount, 2) . ' in your trading balance.';

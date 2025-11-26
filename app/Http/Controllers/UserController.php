@@ -686,7 +686,23 @@ class UserController extends Controller
     public function profileOverview()
     {
         $user = Auth::user();
+        
+        // Ensure user has a referral code
+        if (!$user->referral_code) {
+            $user->referral_code = $this->generateReferralCode();
+            $user->save();
+        }
+        
         return view('dashboard.nav.profile', compact('user'));
+    }
+    
+    private function generateReferralCode(): string
+    {
+        do {
+            $code = Str::upper(Str::random(8));
+        } while (User::where('referral_code', $code)->exists());
+        
+        return $code;
     }
 
     public function profile()

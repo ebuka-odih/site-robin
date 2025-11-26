@@ -401,6 +401,35 @@
                         Update Status
                     </button>
                 </form>
+                
+                <!-- Quick Suspend/Unsuspend Actions -->
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                    @if($user->status !== 'suspended')
+                        <form action="{{ route('admin.user.suspend', $user->id) }}" method="POST" class="inline-block w-full">
+                            @csrf
+                            <button type="submit" 
+                                    onclick="return confirm('Are you sure you want to suspend this user account?')"
+                                    class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                </svg>
+                                Suspend Account
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('admin.user.unsuspend', $user->id) }}" method="POST" class="inline-block w-full">
+                            @csrf
+                            <button type="submit" 
+                                    onclick="return confirm('Are you sure you want to unsuspend this user account?')"
+                                    class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Unsuspend Account
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
 
             <!-- Quick Actions -->

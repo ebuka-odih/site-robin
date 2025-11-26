@@ -37,6 +37,8 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
     Route::delete('/user/{id}/delete', [AdminUserController::class, 'deleteUser'])->name('deleteUser');
     Route::post('/user/{id}/update-balance', [AdminUserController::class, 'updateBalance'])->name('updateBalance');
     Route::post('/user/{id}/update-status', [AdminUserController::class, 'updateStatus'])->name('updateStatus');
+    Route::post('/user/{id}/suspend', [AdminUserController::class, 'suspend'])->name('user.suspend');
+    Route::post('/user/{id}/unsuspend', [AdminUserController::class, 'unsuspend'])->name('user.unsuspend');
     Route::post('/user/{id}/verify-email', [AdminUserController::class, 'verifyEmail'])->name('user.verifyEmail');
     Route::post('/user/{id}/unverify-email', [AdminUserController::class, 'unverifyEmail'])->name('user.unverifyEmail');
 

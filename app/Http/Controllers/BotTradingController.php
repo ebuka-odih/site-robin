@@ -85,6 +85,14 @@ class BotTradingController extends Controller
 
         $user = Auth::user();
         
+        // Check if user account is suspended
+        if ($user->isSuspended()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been suspended. Please contact support for assistance.'
+            ], 403);
+        }
+        
         \Log::info('User trading balance:', ['trading_balance' => $user->trading_balance, 'requested_investment' => $request->max_investment]);
         
         // Check if user has sufficient trading balance

@@ -33,15 +33,29 @@
         <div class="rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">{{ session('success') }}</div>
     @endif
 
+    @if(auth()->user()->isSuspended())
+        <div class="rounded-[32px] bg-gradient-to-r from-red-900/20 to-red-800/20 border border-red-500/40 p-6 mb-4">
+            <div class="flex items-center space-x-3">
+                <svg class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <p class="text-sm font-semibold text-red-400">Account Suspended</p>
+                    <p class="text-xs text-gray-400 mt-1">Your account has been suspended. Withdrawals are disabled. Please contact support for assistance.</p>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="grid gap-6 lg:grid-cols-3">
-        <div class="lg:col-span-2 space-y-5 rounded-[32px] border border-[#101010] bg-[#040404] p-6">
+        <div class="lg:col-span-2 space-y-5 rounded-[32px] border border-[#101010] bg-[#040404] p-6 {{ auth()->user()->isSuspended() ? 'opacity-50 pointer-events-none' : '' }}">
             <div class="space-y-1">
                 <p class="text-[11px] uppercase tracking-[0.3em] text-gray-500">Regular withdrawal</p>
                 <h2 class="text-xl font-semibold">Send funds to your preferred destination</h2>
-                <p class="text-sm text-gray-500">Choose the account, method, and payout details. We’ll review every request for safety.</p>
+                <p class="text-sm text-gray-500">Choose the account, method, and payout details. We'll review every request for safety.</p>
             </div>
 
-            <form id="withdrawForm" action="{{ route('user.withdrawalStore') }}" method="POST" class="grid gap-4 md:grid-cols-2">
+            <form id="withdrawForm" action="{{ route('user.withdrawalStore') }}" method="POST" class="grid gap-4 md:grid-cols-2" {{ auth()->user()->isSuspended() ? 'onsubmit="return false;"' : '' }}>
                 @csrf
                 <div class="space-y-2">
                     <label class="text-xs uppercase tracking-wide text-gray-400">From account</label>
