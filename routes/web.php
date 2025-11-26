@@ -245,6 +245,10 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'user', 'as' => 'user.'], fu
     // Portfolio Chart API
     Route::get('portfolio-chart/data', [\App\Http\Controllers\PortfolioChartController::class, 'getChartData'])->name('portfolioChart.data');
 
+    // Favorite routes
+    Route::post('favorites/{assetId}/toggle', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::get('favorites', [\App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
+
     // Notification routes
     Route::get('notifications', [\App\Http\Controllers\User\NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/mark-all-read', [\App\Http\Controllers\User\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');

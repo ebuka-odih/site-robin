@@ -151,31 +151,43 @@ class UserController extends Controller
             return $copy->status == 1;
         })->count();
         
-        $topSymbols = [
-            'SPY', 'AAPL', 'NVDA', 'AMZN', 'TSLA', 'MSFT',
-            'META', 'GOOGL', 'NFLX', 'ADBE', 'PEP',
-            'DIS', 'LLY', 'COST', 'BRK.A', 'JNJ'
-        ];
+        // Get user's favorite stocks first, if any
+        $favoriteStocks = $user->favorites()
+            ->where('type', 'stock')
+            ->orderByDesc('price_change_24h')
+            ->get();
 
-        $preferredStocks = Asset::where('type', 'stock')
-            ->whereIn('symbol', $topSymbols)
-            ->get()
-            ->sortBy(function ($asset) use ($topSymbols) {
-                return array_search($asset->symbol, $topSymbols);
-            })
-            ->values();
-
-        if ($preferredStocks->count() < 12) {
-            $additionalNeeded = 12 - $preferredStocks->count();
-            $additionalStocks = Asset::where('type', 'stock')
-                ->whereNotIn('id', $preferredStocks->pluck('id'))
-                ->orderByDesc('price_change_24h')
-                ->take($additionalNeeded)
-                ->get();
-
-            $stockAssets = $preferredStocks->merge($additionalStocks);
+        if ($favoriteStocks->count() > 0) {
+            // Use favorites if available
+            $stockAssets = $favoriteStocks;
         } else {
-            $stockAssets = $preferredStocks;
+            // Fall back to preferred stocks
+            $topSymbols = [
+                'SPY', 'AAPL', 'NVDA', 'AMZN', 'TSLA', 'MSFT',
+                'META', 'GOOGL', 'NFLX', 'ADBE', 'PEP',
+                'DIS', 'LLY', 'COST', 'BRK.A', 'JNJ'
+            ];
+
+            $preferredStocks = Asset::where('type', 'stock')
+                ->whereIn('symbol', $topSymbols)
+                ->get()
+                ->sortBy(function ($asset) use ($topSymbols) {
+                    return array_search($asset->symbol, $topSymbols);
+                })
+                ->values();
+
+            if ($preferredStocks->count() < 12) {
+                $additionalNeeded = 12 - $preferredStocks->count();
+                $additionalStocks = Asset::where('type', 'stock')
+                    ->whereNotIn('id', $preferredStocks->pluck('id'))
+                    ->orderByDesc('price_change_24h')
+                    ->take($additionalNeeded)
+                    ->get();
+
+                $stockAssets = $preferredStocks->merge($additionalStocks);
+            } else {
+                $stockAssets = $preferredStocks;
+            }
         }
         $this->balanceHistoryService->recordSnapshots($user, [
             'investing' => $investingBalanceRaw,
@@ -337,11 +349,15 @@ class UserController extends Controller
                 'type' => $type,
             ]);
 
+        // Get user's favorite asset IDs
+        $favoriteIds = $user->favorites()->get()->pluck('id')->toArray();
+
         return view('dashboard.nav.assets', [
             'user' => $user,
             'assets' => $assets,
             'search' => $search,
             'type' => $type,
+            'favoriteIds' => $favoriteIds,
         ]);
     }
 
@@ -775,11 +791,16 @@ class UserController extends Controller
         $watchlist = ($payload['stockAssets'] ?? collect())
             ->take(5)
             ->map(function ($asset) {
+                $price = round($asset->current_price ?? 0, 2);
+                $change = round($asset->price_change_24h ?? 0, 2);
+                $changePercent = $price > 0 ? round(($change / ($price - $change)) * 100, 2) : 0;
+                
                 return [
                     'symbol' => $asset->symbol,
                     'name' => $asset->name,
-                    'price' => round($asset->current_price ?? 0, 2),
-                    'change' => round($asset->price_change_24h ?? 0, 2),
+                    'price' => $price,
+                    'change' => $change,
+                    'change_percentage' => $changePercent,
                 ];
             })
             ->values()

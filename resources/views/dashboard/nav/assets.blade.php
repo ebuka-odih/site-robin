@@ -68,33 +68,52 @@
             </button>
         </div>
         <div class="grid grid-cols-12 px-4 py-3 text-xs uppercase tracking-wide text-gray-500 border-b border-[#121212]">
-            <span class="col-span-6 md:col-span-4">Symbol</span>
+            <span class="col-span-5 md:col-span-3">Symbol</span>
             <span class="col-span-3 md:col-span-3 text-right">Price</span>
             <span class="col-span-3 md:col-span-3 text-right">24h Change</span>
             <span class="hidden md:block md:col-span-2 text-right">Updated</span>
+            <span class="col-span-1 text-center">Favorite</span>
         </div>
         <div class="divide-y divide-[#0d0d0d]">
             @foreach($assets as $asset)
                 @php
                     $isPositive = (float) $asset->price_change_24h >= 0;
                 @endphp
-                <a href="{{ route('user.liveTrading.trade', ['asset_type' => $asset->type, 'symbol' => $asset->symbol]) }}" class="grid grid-cols-12 items-center px-4 py-4 text-sm hover:bg-[#0a0a0a] transition-colors cursor-pointer">
-                    <div class="col-span-6 md:col-span-4">
-                        <p class="font-semibold">{{ $asset->symbol }}</p>
-                        <p class="text-xs text-gray-500">{{ $asset->name }}</p>
+                <div class="grid grid-cols-12 items-center px-4 py-4 text-sm hover:bg-[#0a0a0a] transition-colors">
+                    <a href="{{ route('user.liveTrading.trade', ['asset_type' => $asset->type, 'symbol' => $asset->symbol]) }}" class="col-span-11 grid grid-cols-12 items-center cursor-pointer">
+                        <div class="col-span-5 md:col-span-3">
+                            <p class="font-semibold">{{ $asset->symbol }}</p>
+                            <p class="text-xs text-gray-500">{{ $asset->name }}</p>
+                        </div>
+                        <div class="col-span-3 md:col-span-3 text-right font-semibold">
+                            ${{ number_format((float) $asset->current_price, $priceDecimals) }}
+                        </div>
+                        <div class="col-span-3 md:col-span-3 text-right">
+                            <span class="inline-flex items-center justify-end gap-1 rounded-full px-3 py-1 text-xs font-semibold {{ $isPositive ? 'bg-[#0f2b14] text-[#00ff5f]' : 'bg-[#2b0f0f] text-[#ff4d4d]' }}">
+                                {{ $isPositive ? '+' : '' }}{{ number_format((float) $asset->price_change_24h, 2) }}%
+                            </span>
+                        </div>
+                        <div class="hidden md:block md:col-span-2 text-right text-xs text-gray-500">
+                            {{ optional($asset->updated_at)->diffForHumans() ?? '—' }}
+                        </div>
+                    </a>
+                    <div class="col-span-1 flex justify-center">
+                        @php
+                            $isFavorited = in_array($asset->id, $favoriteIds ?? []);
+                        @endphp
+                        <button
+                            type="button"
+                            class="favorite-btn p-2 rounded-full hover:bg-[#1a1a1a] transition-colors"
+                            data-asset-id="{{ $asset->id }}"
+                            data-favorited="{{ $isFavorited ? 'true' : 'false' }}"
+                            onclick="event.preventDefault(); toggleFavorite({{ $asset->id }}, this);"
+                        >
+                            <svg class="w-5 h-5 {{ $isFavorited ? 'text-yellow-400 fill-yellow-400' : 'text-gray-500' }}" fill="{{ $isFavorited ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
+                        </button>
                     </div>
-                    <div class="col-span-3 md:col-span-3 text-right font-semibold">
-                        ${{ number_format((float) $asset->current_price, $priceDecimals) }}
-                    </div>
-                    <div class="col-span-3 md:col-span-3 text-right">
-                        <span class="inline-flex items-center justify-end gap-1 rounded-full px-3 py-1 text-xs font-semibold {{ $isPositive ? 'bg-[#0f2b14] text-[#00ff5f]' : 'bg-[#2b0f0f] text-[#ff4d4d]' }}">
-                            {{ $isPositive ? '+' : '' }}{{ number_format((float) $asset->price_change_24h, 2) }}%
-                        </span>
-                    </div>
-                    <div class="hidden md:block md:col-span-2 text-right text-xs text-gray-500">
-                        {{ optional($asset->updated_at)->diffForHumans() ?? '—' }}
-                    </div>
-                </a>
+                </div>
             @endforeach
         </div>
     </div>
@@ -119,6 +138,68 @@
 
 @push('scripts')
 <script>
+function toggleFavorite(assetId, button) {
+    const icon = button.querySelector('svg');
+    const isFavorited = button.getAttribute('data-favorited') === 'true';
+    
+    // Optimistic UI update
+    if (isFavorited) {
+        button.setAttribute('data-favorited', 'false');
+        icon.classList.remove('text-yellow-400', 'fill-yellow-400');
+        icon.classList.add('text-gray-500');
+        icon.setAttribute('fill', 'none');
+    } else {
+        button.setAttribute('data-favorited', 'true');
+        icon.classList.remove('text-gray-500');
+        icon.classList.add('text-yellow-400', 'fill-yellow-400');
+        icon.setAttribute('fill', 'currentColor');
+    }
+    
+    // Make API call
+    fetch(`/user/favorites/${assetId}/toggle`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            // Revert on error
+            if (isFavorited) {
+                button.setAttribute('data-favorited', 'true');
+                icon.classList.remove('text-gray-500');
+                icon.classList.add('text-yellow-400', 'fill-yellow-400');
+                icon.setAttribute('fill', 'currentColor');
+            } else {
+                button.setAttribute('data-favorited', 'false');
+                icon.classList.remove('text-yellow-400', 'fill-yellow-400');
+                icon.classList.add('text-gray-500');
+                icon.setAttribute('fill', 'none');
+            }
+            alert(data.message || 'Failed to update favorite.');
+        }
+    })
+    .catch(error => {
+        // Revert on error
+        if (isFavorited) {
+            button.setAttribute('data-favorited', 'true');
+            icon.classList.remove('text-gray-500');
+            icon.classList.add('text-yellow-400', 'fill-yellow-400');
+            icon.setAttribute('fill', 'currentColor');
+        } else {
+            button.setAttribute('data-favorited', 'false');
+            icon.classList.remove('text-yellow-400', 'fill-yellow-400');
+            icon.classList.add('text-gray-500');
+            icon.setAttribute('fill', 'none');
+        }
+        alert('Failed to update favorite. Please try again.');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const refreshBtn = document.getElementById('refreshAssets');
     const searchInput = document.getElementById('assetSearchInput');
@@ -136,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             refreshBtn.disabled = false;
             refreshBtn.classList.remove('opacity-60');
-            label.textContent = 'Refresh Prices';
+            label.textContent = 'Refresh';
             icon.classList.remove('animate-spin');
         }
     };

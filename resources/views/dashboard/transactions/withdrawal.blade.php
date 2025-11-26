@@ -260,6 +260,41 @@
     </div>
 </div>
 
+<!-- Tax Regulations Modal -->
+<div id="taxRegulationsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/70 px-4 py-4">
+    <div class="w-full max-w-lg rounded-2xl border border-[#171717] bg-[#050505] p-6 max-h-[90vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+        <h3 class="text-center text-xl font-bold text-white mb-4">Tax Regulations Notice</h3>
+        
+        <p class="text-sm text-white mb-4 leading-relaxed">
+            Cryptocurrency withdrawals may have tax implications depending on your jurisdiction. We recommend:
+        </p>
+
+        <div class="mb-4">
+            <p class="text-sm font-bold text-white mb-2">Before proceeding:</p>
+            <ul class="space-y-1.5 text-sm text-white list-disc list-inside ml-3">
+                <li>Review your local tax laws and regulations</li>
+                <li>Consult with a tax professional if needed</li>
+                <li>Keep detailed records of all transactions</li>
+            </ul>
+        </div>
+
+        <div class="rounded-xl border border-[#1a1a1a] bg-[#0a0a0a] p-4 mb-4">
+            <p class="text-sm text-white">
+                Questions? Our live support team is here to help with personalized guidance.
+            </p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <button id="taxModalProceedBtn" class="w-full rounded-2xl bg-gradient-to-r from-[#08f58d] to-[#1fff9c] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-110">
+                I Understand, Proceed
+            </button>
+            <button id="taxModalCancelBtn" class="w-full rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#252525]">
+                Cancel Withdrawal
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="customModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 px-4">
     <div class="w-full max-w-md rounded-2xl border border-[#171717] bg-[#050505] p-6">
         <div class="flex items-center justify-between">
@@ -280,6 +315,7 @@
 const modal = document.getElementById('customModal');
 const modalTitle = document.getElementById('modalTitle');
 const modalMessage = document.getElementById('modalMessage');
+const taxModal = document.getElementById('taxRegulationsModal');
 
 function showModal(title, message, showCancel = false) {
     modalTitle.textContent = title;
@@ -294,6 +330,56 @@ function hideModal() { modal.classList.add('hidden'); }
 });
 if (modal) {
     modal.addEventListener('click', (e) => { if (e.target === modal) hideModal(); });
+}
+
+// Tax Regulations Modal functions
+function showTaxModal() {
+    if (taxModal) {
+        taxModal.classList.remove('hidden');
+    }
+}
+
+function hideTaxModal() {
+    if (taxModal) {
+        taxModal.classList.add('hidden');
+    }
+}
+
+// Store the form submission handler
+let pendingWithdrawalSubmission = null;
+
+// Tax modal event listeners
+const taxModalProceedBtn = document.getElementById('taxModalProceedBtn');
+const taxModalCancelBtn = document.getElementById('taxModalCancelBtn');
+
+if (taxModalProceedBtn) {
+    taxModalProceedBtn.addEventListener('click', function() {
+        hideTaxModal();
+        // Proceed with the withdrawal
+        if (pendingWithdrawalSubmission) {
+            pendingWithdrawalSubmission();
+            pendingWithdrawalSubmission = null;
+        }
+    });
+}
+
+if (taxModalCancelBtn) {
+    taxModalCancelBtn.addEventListener('click', function() {
+        hideTaxModal();
+        setButtonProcessing(false, 'withdraw');
+        pendingWithdrawalSubmission = null;
+    });
+}
+
+// Close tax modal when clicking outside
+if (taxModal) {
+    taxModal.addEventListener('click', (e) => {
+        if (e.target === taxModal) {
+            hideTaxModal();
+            setButtonProcessing(false, 'withdraw');
+            pendingWithdrawalSubmission = null;
+        }
+    });
 }
 
 const withdrawMethod = document.getElementById('withdrawalMethod');
@@ -365,16 +451,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 showModal('Validation error', err.message);
                 return;
             }
-            setButtonProcessing(true, 'withdraw');
-            checkAuthentication()
-                .then(isAuth => {
-                    if (!isAuth) throw new Error('Session expired. Please login again.');
-                    return processWithdrawal();
-                })
-                .catch(error => {
-                    setButtonProcessing(false, 'withdraw');
-                    showModal('Error', error.message || 'Unable to submit request.');
-                });
+            
+            // Store the withdrawal processing function
+            pendingWithdrawalSubmission = function() {
+                setButtonProcessing(true, 'withdraw');
+                checkAuthentication()
+                    .then(isAuth => {
+                        if (!isAuth) throw new Error('Session expired. Please login again.');
+                        return processWithdrawal();
+                    })
+                    .catch(error => {
+                        setButtonProcessing(false, 'withdraw');
+                        showModal('Error', error.message || 'Unable to submit request.');
+                        pendingWithdrawalSubmission = null;
+                    });
+            };
+            
+            // Show tax regulations modal first
+            showTaxModal();
         });
     }
 

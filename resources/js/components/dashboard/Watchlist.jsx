@@ -51,9 +51,9 @@ const Watchlist = ({ watchlist = [] }) => {
     const chartHeight = 24;
     const chartWidth = 48;
 
-    const handleViewAll = () => {
-        // TODO: Navigate to full watchlist page
-        console.log('View all watchlist');
+    const handleAddFavorite = () => {
+        // Navigate to assets directory page
+        window.location.href = '/user/assets-directory?type=stock';
     };
 
     return (
@@ -64,9 +64,9 @@ const Watchlist = ({ watchlist = [] }) => {
                 <button
                     type="button"
                     className="text-xs text-[#00ff63] cursor-pointer hover:underline"
-                    onClick={handleViewAll}
+                    onClick={handleAddFavorite}
                 >
-                    View all
+                    Add favorite
                 </button>
             </div>
 

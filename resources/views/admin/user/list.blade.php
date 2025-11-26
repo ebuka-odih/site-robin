@@ -79,9 +79,6 @@
                     <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
                       Balance
                     </th>
-                    <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
-                      Profit
-                    </th>
                    <th scope="col" class="p-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-white">
                       Status
                     </th>
@@ -111,9 +108,6 @@
 
                     <td class="text-gray-500 dark:text-gray-400">
                       <span>${{ number_format($item->balance ?? '', 2) }}</span>
-                    </td>
-                    <td class="text-gray-500 dark:text-gray-400">
-                      <span>${{ number_format($item->profit ?? '', 2) }}</span>
                     </td>
                    <td class="text-gray-500 dark:text-gray-400">
                                                       <span>{!! $item->status_badge ?? '' !!}</span>

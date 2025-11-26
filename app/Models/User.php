@@ -504,4 +504,21 @@ class User extends Authenticatable
             return null;
         }
     }
+
+    /**
+     * Get the user's favorite assets
+     */
+    public function favorites()
+    {
+        return $this->belongsToMany(Asset::class, 'user_favorites')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if user has favorited an asset
+     */
+    public function hasFavorited($assetId)
+    {
+        return $this->favorites()->where('asset_id', $assetId)->exists();
+    }
 }

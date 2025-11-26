@@ -35,4 +35,13 @@ class Asset extends Model
     {
         return $this->hasMany(HoldingTransaction::class);
     }
+
+    /**
+     * Get users who favorited this asset
+     */
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(\App\Models\User::class, 'user_favorites')
+            ->withTimestamps();
+    }
 }
