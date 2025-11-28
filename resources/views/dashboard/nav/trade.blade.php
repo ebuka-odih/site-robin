@@ -29,7 +29,7 @@
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#crypto-list">Crypto</button>
                 <button class="trade-tab rounded-full px-4 py-1 text-xs font-semibold text-gray-400" data-target="#history-list">History</button>
             </div>
-            <a href="{{ route('user.nav.assets', ['type' => 'stock']) }}" class="text-xs text-gray-400 hover:text-white">See market</a>
+            <a href="{{ route('user.nav.assets', ['type' => 'stock']) }}" class="text-xs text-[#08f58d] hover:text-white">See market</a>
         </div>
         <div id="stock-list" class="grid gap-3 md:grid-cols-2">
             @forelse($stockAssets as $asset)

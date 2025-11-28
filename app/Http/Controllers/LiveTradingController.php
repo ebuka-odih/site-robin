@@ -96,17 +96,25 @@ class LiveTradingController extends Controller
             ->get() : collect();
         $holdingsBySymbol = $this->getHoldingsBySymbol($user);
         
-        if ($assetType === 'stock') {
-            $relatedStocks = Asset::where('type', 'stock')
-                ->where('symbol', '!=', $symbol)
-                ->inRandomOrder()
-                ->take(4)
-                ->get();
-
-            return view('dashboard.live-trading.stock', compact('asset', 'assetType', 'user', 'tradeHistory', 'relatedStocks', 'holdingsBySymbol'));
-        }
-
-        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory', 'holdingsBySymbol'));
+        // Get all assets for dropdown
+        $allAssets = Asset::where('is_active', true)
+            ->orderBy('type')
+            ->orderBy('symbol')
+            ->get(['id', 'symbol', 'name', 'type', 'current_price']);
+        
+        // Get quick picks (popular assets) - ordered by specific sequence
+        $quickPickSymbols = ['ETH', 'MSFT', 'SOL', 'SPY', 'TSLA', 'AAPL', 'BNB', 'BTC'];
+        $quickPicks = Asset::where('is_active', true)
+            ->whereIn('symbol', $quickPickSymbols)
+            ->get(['id', 'symbol', 'name', 'type', 'current_price'])
+            ->sortBy(function ($asset) use ($quickPickSymbols) {
+                $index = array_search($asset->symbol, $quickPickSymbols);
+                return $index === false ? 999 : $index;
+            })
+            ->values();
+        
+        // Use the improved trade view for all asset types
+        return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory', 'holdingsBySymbol', 'allAssets', 'quickPicks'));
     }
 
     public function advancedTrade(Request $request)

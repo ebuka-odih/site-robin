@@ -155,6 +155,7 @@
                         <option value="">Select account</option>
                         <option value="balance" data-balance="{{ $user->balance }}">Main ({{ $user->formatAmount($user->balance) }})</option>
                         <option value="trading_balance" data-balance="{{ $user->trading_balance ?? 0 }}">Trading ({{ $user->formatAmount($user->trading_balance ?? 0) }})</option>
+                        <option value="profit" data-balance="{{ $user->profit ?? 0 }}">Profit ({{ $user->formatAmount($user->profit ?? 0) }})</option>
                     </select>
                 </div>
                 <div class="space-y-2">
@@ -407,17 +408,65 @@ function updateAvailableAmount() {
     const selected = transferFromSelect.options[transferFromSelect.selectedIndex];
     document.getElementById('availableAmount').textContent = parseFloat(selected?.dataset.balance || 0).toFixed(2);
 }
+
+function updateToAccountOptions() {
+    const toAccountSelect = document.getElementById('toAccount');
+    if (!toAccountSelect || !transferFromSelect) return;
+    
+    const fromAccount = transferFromSelect.value;
+    const currentToValue = toAccountSelect.value;
+    
+    // Clear existing options except the first one
+    toAccountSelect.innerHTML = '<option value="">Select account</option>';
+    
+    if (fromAccount === 'profit') {
+        // When profit is selected, only show trading_balance option
+        const tradingOption = document.createElement('option');
+        tradingOption.value = 'trading_balance';
+        tradingOption.textContent = 'Trading';
+        toAccountSelect.appendChild(tradingOption);
+        
+        // If current selection was balance, reset to empty
+        if (currentToValue === 'balance') {
+            toAccountSelect.value = '';
+        }
+    } else {
+        // For other accounts, show both Main and Trading options
+        const mainOption = document.createElement('option');
+        mainOption.value = 'balance';
+        mainOption.textContent = 'Main';
+        toAccountSelect.appendChild(mainOption);
+        
+        const tradingOption = document.createElement('option');
+        tradingOption.value = 'trading_balance';
+        tradingOption.textContent = 'Trading';
+        toAccountSelect.appendChild(tradingOption);
+        
+        // Restore previous selection if it's still valid
+        if (currentToValue && (currentToValue === 'balance' || currentToValue === 'trading_balance')) {
+            toAccountSelect.value = currentToValue;
+        }
+    }
+}
+
 function updateWithdrawAvailableAmount() {
     if (!withdrawAccountSelect) return;
     const selected = withdrawAccountSelect.options[withdrawAccountSelect.selectedIndex];
     document.getElementById('withdrawAvailableAmount').textContent = parseFloat(selected?.dataset.balance || 0).toFixed(2);
 }
-updateAvailableAmount();
-updateWithdrawAvailableAmount();
-if (transferFromSelect) transferFromSelect.addEventListener('change', updateAvailableAmount);
+if (transferFromSelect) {
+    transferFromSelect.addEventListener('change', function() {
+        updateAvailableAmount();
+        updateToAccountOptions();
+    });
+}
 if (withdrawAccountSelect) withdrawAccountSelect.addEventListener('change', updateWithdrawAvailableAmount);
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize on page load
+    updateAvailableAmount();
+    updateWithdrawAvailableAmount();
+    updateToAccountOptions();
     const validator = (form) => {
         const fromAccount = form.querySelector('[name="from_account"]').value;
         const method = form.querySelector('[name="payment_method"]').value;

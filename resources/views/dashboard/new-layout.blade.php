@@ -310,6 +310,28 @@
                     </div>
                     <span>Profile</span>
                 </a>
+                <!-- Menu Icon with Popup -->
+                <div class="relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl px-2 py-1">
+                    <button id="menu-toggle" class="group flex flex-col items-center gap-0.5 w-full hover:text-white transition-colors">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#0c0c0c] text-gray-300 text-xs transition-colors group-hover:bg-[#1f1f1f]">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </div>
+                        <span class="text-[11px] font-medium text-gray-500 group-hover:text-white">More</span>
+                    </button>
+                    <!-- Popup Menu -->
+                    <div id="menu-popup" class="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-[#0c0c0c] border border-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden z-50">
+                        <div class="py-2">
+                            <a href="{{ route('user.support.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                                <span>Support</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </nav>
         </div>
     </div>
@@ -320,6 +342,37 @@
     
     <script>
     @yield('scripts')
+    </script>
+    
+    <!-- Menu Popup Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuPopup = document.getElementById('menu-popup');
+            
+            if (menuToggle && menuPopup) {
+                // Toggle popup on click
+                menuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menuPopup.classList.toggle('hidden');
+                });
+                
+                // Close popup when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!menuToggle.contains(e.target) && !menuPopup.contains(e.target)) {
+                        menuPopup.classList.add('hidden');
+                    }
+                });
+                
+                // Close popup when clicking on menu items
+                const menuItems = menuPopup.querySelectorAll('a');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        menuPopup.classList.add('hidden');
+                    });
+                });
+            }
+        });
     </script>
     
     <script src="{{ asset('front/livewire/livewire5dd3.js') }}"   data-csrf="QHTgDfeSDEhGixs61ktyfaAnqYfyNU0Xv8qcvRbs" data-update-uri="/livewire/update" data-navigate-once="true"></script>
