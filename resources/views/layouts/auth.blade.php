@@ -2,9 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name') }} — @yield('title', 'Account')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }} — @yield('title', 'Account')</title>
     <link rel="icon" href="{{ asset('assets/img/favicon.png') }}" type="image/x-icon">
+    
+    {{-- PWA Meta Tags --}}
+    <meta name="theme-color" content="#1fff9c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }}">
+    <meta name="description" content="{{ \App\Helpers\WebsiteSettingsHelper::getSiteTagline() ?: 'Secure cryptocurrency trading platform' }}">
+    
+    {{-- Apple Touch Icons --}}
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('assets/img/favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('assets/img/favicon.png') }}">
+    
+    {{-- PWA Manifest --}}
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -39,5 +56,11 @@
     </div>
 
     @stack('scripts')
+    
+    {{-- PWA Service Worker Registration --}}
+    <script src="{{ asset('js/pwa-sw-register.js') }}"></script>
+    
+    {{-- PWA Install Prompt --}}
+    <script src="{{ asset('js/pwa-install-prompt.js') }}"></script>
 </body>
 </html>

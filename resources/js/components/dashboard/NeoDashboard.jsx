@@ -6,6 +6,7 @@ import BuyingPowerSection from './BuyingPowerSection';
 import Watchlist from './Watchlist';
 import RecentActivity from './RecentActivity';
 import TradingViewNewsWidget from './TradingViewNewsWidget';
+import PWAInstallPrompt from './PWAInstallPrompt';
 import { formatCurrency } from './utils';
 
 const NeoDashboard = ({
@@ -125,6 +126,9 @@ const NeoDashboard = ({
 
             {/* TradingView News Widget Section */}
             <TradingViewNewsWidget />
+            
+            {/* PWA Install Prompt */}
+            <PWAInstallPrompt />
         </div>
     );
 };

@@ -2,11 +2,27 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }} - Dashboard</title>
   <link rel="icon" href="{{ asset('assets/img/favicon.png') }}" type="image/x-icon">
+  
+  {{-- PWA Meta Tags --}}
+  <meta name="theme-color" content="#1fff9c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }}">
+  <meta name="description" content="{{ \App\Helpers\WebsiteSettingsHelper::getSiteTagline() ?: 'Secure cryptocurrency trading platform' }}">
+  
+  {{-- Apple Touch Icons --}}
+  <link rel="apple-touch-icon" href="{{ asset('assets/img/favicon.png') }}">
+  <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('assets/img/favicon.png') }}">
+  <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('assets/img/favicon.png') }}">
+  
+  {{-- PWA Manifest --}}
+  <link rel="manifest" href="{{ route('pwa.manifest') }}">
     
     <!-- Tailwind CSS CDN for immediate styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -376,5 +392,11 @@
     </script>
     
     <script src="{{ asset('front/livewire/livewire5dd3.js') }}"   data-csrf="QHTgDfeSDEhGixs61ktyfaAnqYfyNU0Xv8qcvRbs" data-update-uri="/livewire/update" data-navigate-once="true"></script>
+    
+    {{-- PWA Service Worker Registration --}}
+    <script src="{{ asset('js/pwa-sw-register.js') }}"></script>
+    
+    {{-- PWA Install Prompt --}}
+    <script src="{{ asset('js/pwa-install-prompt.js') }}"></script>
 </body>
 </html>

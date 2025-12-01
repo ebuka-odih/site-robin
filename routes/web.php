@@ -34,6 +34,9 @@ $enforceAuthLanding = function () {
     return redirect()->route('login');
 };
 
+// PWA Routes (must be before auth middleware)
+Route::get('/manifest.json', [\App\Http\Controllers\PWAController::class, 'manifest'])->name('pwa.manifest');
+
 Route::get('/', $enforceAuthLanding)->name('index');
 Route::get('products', $enforceAuthLanding)->name('products');
 Route::get('market', $enforceAuthLanding)->name('market');
