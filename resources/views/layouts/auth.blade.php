@@ -15,9 +15,11 @@
     <meta name="description" content="{{ \App\Helpers\WebsiteSettingsHelper::getSiteTagline() ?: 'Secure cryptocurrency trading platform' }}">
     
     {{-- Apple Touch Icons --}}
-    <link rel="apple-touch-icon" href="{{ asset('assets/img/favicon.png') }}">
-    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('assets/img/favicon.png') }}">
-    <link rel="apple-touch-icon" sizes="512x512" href="{{ asset('assets/img/favicon.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('pwa-icons/apple-touch-icon-180x180.png') }}">
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ asset('pwa-icons/apple-touch-icon-152x152.png') }}">
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ asset('pwa-icons/apple-touch-icon-120x120.png') }}">
+    <link rel="apple-touch-icon" sizes="76x76" href="{{ asset('pwa-icons/apple-touch-icon-76x76.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('pwa-icons/apple-touch-icon-180x180.png') }}">
     
     {{-- PWA Manifest --}}
     <link rel="manifest" href="{{ route('pwa.manifest') }}">

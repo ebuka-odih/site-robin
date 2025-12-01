@@ -31,13 +31,13 @@ class PWAController extends Controller
             'orientation' => 'portrait-primary',
             'icons' => [
                 [
-                    'src' => asset('assets/img/favicon.png'),
+                    'src' => asset('pwa-icons/icon-192x192.png'),
                     'sizes' => '192x192',
                     'type' => 'image/png',
                     'purpose' => 'any maskable'
                 ],
                 [
-                    'src' => asset('assets/img/favicon.png'),
+                    'src' => asset('pwa-icons/icon-512x512.png'),
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'any maskable'
@@ -53,8 +53,8 @@ class PWAController extends Controller
                     'url' => '/user/dashboard',
                     'icons' => [
                         [
-                            'src' => asset('assets/img/favicon.png'),
-                            'sizes' => '96x96'
+                            'src' => asset('pwa-icons/icon-192x192.png'),
+                            'sizes' => '192x192'
                         ]
                     ]
                 ]
