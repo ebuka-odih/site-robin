@@ -73,6 +73,20 @@
             --border-color: #e2e8f0;
             --border-hover: #cbd5e1;
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            
+            /* Shadcn/ui style variables for React components */
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --primary: 142 76% 36%;
+            --primary-foreground: 355.7 100% 97.3%;
+            --secondary: 210 40% 96.1%;
+            --secondary-foreground: 222.2 47.4% 11.2%;
+            --muted: 210 40% 96.1%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --border: 214.3 31.8% 91.4%;
+            --ring: 142 76% 36%;
         }
         
         .dark {
@@ -86,7 +100,33 @@
             --border-color: #475569;
             --border-hover: #64748b;
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            
+            /* Shadcn/ui style variables for dark theme */
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --primary: 142 76% 36%;
+            --primary-foreground: 222.2 47.4% 11.2%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --border: 217.2 32.6% 17.5%;
+            --ring: 142 76% 36%;
         }
+        
+        /* Shadcn/ui utility classes */
+        .text-foreground { color: hsl(var(--foreground)); }
+        .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+        .bg-background { background-color: hsl(var(--background)); }
+        .bg-card { background-color: hsl(var(--card)); }
+        .bg-primary { background-color: hsl(var(--primary)); }
+        .text-primary { color: hsl(var(--primary)); }
+        .border-border { border-color: hsl(var(--border)); }
+        .bg-primary\/20 { background-color: hsl(var(--primary) / 0.2); }
+        .border-primary\/30 { border-color: hsl(var(--primary) / 0.3); }
+        .bg-primary\/10 { background-color: hsl(var(--primary) / 0.1); }
         
         /* Light theme classes - More specific selectors */
         .light-theme {

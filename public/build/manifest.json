@@ -1,6 +1,10 @@
 {
+  "_LineChart-WCPxr7uf.js": {
+    "file": "assets/LineChart-WCPxr7uf.js",
+    "name": "LineChart"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-GF6gCpg5.css",
+    "file": "assets/app-C9U6dG0O.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
@@ -11,9 +15,21 @@
     "isEntry": true
   },
   "resources/js/dashboard.jsx": {
-    "file": "assets/dashboard-CZMeCP9H.js",
+    "file": "assets/dashboard-Bs58DoU_.js",
     "name": "dashboard",
     "src": "resources/js/dashboard.jsx",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_LineChart-WCPxr7uf.js"
+    ]
+  },
+  "resources/js/trading.jsx": {
+    "file": "assets/trading-C5mKEWTa.js",
+    "name": "trading",
+    "src": "resources/js/trading.jsx",
+    "isEntry": true,
+    "imports": [
+      "_LineChart-WCPxr7uf.js"
+    ]
   }
 }

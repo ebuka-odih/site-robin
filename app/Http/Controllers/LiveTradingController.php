@@ -117,6 +117,122 @@ class LiveTradingController extends Controller
         return view('dashboard.live-trading.trade', compact('asset', 'assetType', 'user', 'tradeHistory', 'holdingsBySymbol', 'allAssets', 'quickPicks'));
     }
 
+    public function tradeNew(Request $request)
+    {
+        $assetType = $request->get('asset_type');
+        $symbol = $request->get('symbol');
+        $asset = $this->resolveAsset($assetType, $symbol);
+        $user = Auth::user();
+        $tradeHistory = $user ? LiveTrade::where('user_id', $user->id)
+            ->where('asset_type', $assetType)
+            ->where('symbol', $symbol)
+            ->latest()
+            ->take(5)
+            ->get() : collect();
+        
+        // Get related assets (same type, different symbols)
+        $relatedAssets = Asset::where('type', $assetType)
+            ->where('symbol', '!=', $symbol)
+            ->where('is_active', true)
+            ->orderByDesc('market_cap')
+            ->take(4)
+            ->get(['id', 'symbol', 'name', 'type', 'current_price']);
+        
+        // Get all assets for dropdown
+        $allAssets = Asset::where('is_active', true)
+            ->orderBy('type')
+            ->orderBy('symbol')
+            ->get(['id', 'symbol', 'name', 'type', 'current_price']);
+        
+        // Get quick picks (popular assets) - ordered by specific sequence
+        $quickPickSymbols = ['ETH', 'MSFT', 'SOL', 'SPY', 'TSLA', 'AAPL', 'BNB', 'BTC'];
+        $quickPicks = Asset::where('is_active', true)
+            ->whereIn('symbol', $quickPickSymbols)
+            ->get(['id', 'symbol', 'name', 'type', 'current_price'])
+            ->sortBy(function ($asset) use ($quickPickSymbols) {
+                $index = array_search($asset->symbol, $quickPickSymbols);
+                return $index === false ? 999 : $index;
+            })
+            ->values();
+        
+        // Prepare asset data for React
+        $assetData = is_array($asset) ? $asset : [
+            'id' => $asset->id ?? null,
+            'symbol' => $asset->symbol ?? $symbol,
+            'name' => $asset->name ?? $symbol,
+            'type' => $assetType,
+            'current_price' => $asset->current_price ?? 0,
+            'price_change_24h' => $asset->price_change_24h ?? 0,
+            'market_cap' => $asset->market_cap ?? 0,
+            'volume_24h' => $asset->volume_24h ?? 0,
+        ];
+        
+        // Prepare trade history for React
+        $tradeHistoryData = $tradeHistory->map(function ($trade) {
+            return [
+                'id' => $trade->id,
+                'symbol' => $trade->symbol,
+                'side' => $trade->side,
+                'order_type' => $trade->order_type,
+                'amount' => $trade->amount,
+                'quantity' => $trade->quantity,
+                'price' => $trade->price,
+                'status' => $trade->status,
+                'created_at' => $trade->created_at?->toISOString(),
+            ];
+        })->toArray();
+        
+        // Prepare related assets for React
+        $relatedAssetsData = $relatedAssets->map(function ($asset) {
+            return [
+                'id' => $asset->id,
+                'symbol' => $asset->symbol,
+                'name' => $asset->name,
+                'type' => $asset->type,
+                'current_price' => $asset->current_price,
+            ];
+        })->toArray();
+        
+        // Prepare all assets for React
+        $allAssetsData = $allAssets->map(function ($asset) {
+            return [
+                'id' => $asset->id,
+                'symbol' => $asset->symbol,
+                'name' => $asset->name,
+                'type' => $asset->type,
+                'current_price' => $asset->current_price,
+            ];
+        })->toArray();
+        
+        // Prepare quick picks for React
+        $quickPicksData = $quickPicks->map(function ($asset) {
+            return [
+                'id' => $asset->id,
+                'symbol' => $asset->symbol,
+                'name' => $asset->name,
+                'type' => $asset->type,
+                'current_price' => $asset->current_price,
+            ];
+        })->toArray();
+        
+        $reactProps = [
+            'asset' => $assetData,
+            'assetType' => $assetType,
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'trading_balance' => $user->trading_balance ?? 0,
+            ] : null,
+            'tradeHistory' => $tradeHistoryData,
+            'relatedAssets' => $relatedAssetsData,
+            'allAssets' => $allAssetsData,
+            'quickPicks' => $quickPicksData,
+            'tradingBalance' => $user->trading_balance ?? 0,
+        ];
+        
+        return view('dashboard.live-trading.trade-new', compact('reactProps'));
+    }
+
     public function advancedTrade(Request $request)
     {
         $assetType = $request->get('asset_type');

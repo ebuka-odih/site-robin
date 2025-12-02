@@ -9,6 +9,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/dashboard.jsx',
+                'resources/js/trading.jsx',
             ],
             refresh: true,
         }),
