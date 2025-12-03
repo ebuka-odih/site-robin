@@ -8,6 +8,7 @@ use App\Models\LiveTrade;
 use App\Models\TradePair;
 use App\Models\User;
 use App\Models\BotTrade;
+use App\Models\UserNotification;
 use App\Services\BalanceHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -709,7 +710,17 @@ class UserController extends Controller
             $user->save();
         }
         
-        return view('dashboard.nav.profile', compact('user'));
+        // Fetch recent notifications for the user
+        $notifications = UserNotification::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        $unreadCount = UserNotification::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->count();
+        
+        return view('dashboard.nav.profile', compact('user', 'notifications', 'unreadCount'));
     }
     
     private function generateReferralCode(): string

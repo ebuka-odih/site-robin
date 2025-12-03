@@ -271,9 +271,8 @@ class WithdrawalController extends Controller
                 ]
             );
 
-            // Deduct from user's account
-            $user->$fromAccount -= $amount;
-            $user->save();
+            // Note: Funds are NOT deducted here - they will be deducted only when admin approves
+            // This ensures users can still use their funds while withdrawal is pending
 
             // Send email notification to user
             Mail::to(auth()->user()->email)->send(new WithdrawalRequestMail($withdraw));
@@ -287,8 +286,7 @@ class WithdrawalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Withdrawal request submitted successfully',
-                'new_balance' => $user->$fromAccount
+                'message' => 'Withdrawal request submitted successfully. Funds will be deducted upon admin approval.',
             ]);
 
         } catch (\Exception $e) {

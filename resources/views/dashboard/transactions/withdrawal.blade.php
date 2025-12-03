@@ -185,17 +185,28 @@
         </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-        <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6">
+    <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6 flex flex-col" style="min-height: 500px;">
+        <!-- Tab Navigation -->
+        <div class="flex items-center gap-4 mb-6 border-b border-[#131313]">
+            <button id="withdrawalsTab" class="tab-button active px-4 py-3 text-sm font-semibold text-white border-b-2 border-[#1fff9c] transition-colors">
+                Withdrawals
+            </button>
+            <button id="transfersTab" class="tab-button px-4 py-3 text-sm font-semibold text-gray-500 border-b-2 border-transparent hover:text-gray-300 transition-colors">
+                Transfers
+            </button>
+        </div>
+
+        <!-- Withdrawals Tab Content -->
+        <div id="withdrawalsContent" class="tab-content flex-1 flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <p class="text-[11px] uppercase tracking-[0.3em] text-gray-500">History</p>
                     <h3 class="text-lg font-semibold">Recent withdrawals</h3>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="flex-1 overflow-x-auto overflow-y-auto">
                 <table class="min-w-full divide-y divide-[#131313] text-sm">
-                    <thead class="text-left text-gray-500 text-xs uppercase">
+                    <thead class="text-left text-gray-500 text-xs uppercase sticky top-0 bg-[#040404]">
                         <tr>
                             <th class="py-3 pr-6">Amount</th>
                             <th class="py-3 pr-6">Method</th>
@@ -224,16 +235,17 @@
             </div>
         </div>
 
-        <div class="rounded-[32px] border border-[#101010] bg-[#040404] p-6">
+        <!-- Transfers Tab Content -->
+        <div id="transfersContent" class="tab-content hidden flex-1 flex flex-col">
             <div class="flex items-center justify-between mb-4">
                 <div>
                     <p class="text-[11px] uppercase tracking-[0.3em] text-gray-500">Internal history</p>
                     <h3 class="text-lg font-semibold">Recent transfers</h3>
                 </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="flex-1 overflow-x-auto overflow-y-auto">
                 <table class="min-w-full divide-y divide-[#131313] text-sm">
-                    <thead class="text-left text-gray-500 text-xs uppercase">
+                    <thead class="text-left text-gray-500 text-xs uppercase sticky top-0 bg-[#040404]">
                         <tr>
                             <th class="py-3 pr-6">Amount</th>
                             <th class="py-3 pr-6">Route</th>
@@ -463,6 +475,36 @@ if (transferFromSelect) {
 if (withdrawAccountSelect) withdrawAccountSelect.addEventListener('change', updateWithdrawAvailableAmount);
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Tab switching functionality
+    const withdrawalsTab = document.getElementById('withdrawalsTab');
+    const transfersTab = document.getElementById('transfersTab');
+    const withdrawalsContent = document.getElementById('withdrawalsContent');
+    const transfersContent = document.getElementById('transfersContent');
+
+    function switchTab(activeTab, activeContent, inactiveTab, inactiveContent) {
+        // Update tab buttons
+        activeTab.classList.add('active', 'text-white', 'border-[#1fff9c]');
+        activeTab.classList.remove('text-gray-500', 'border-transparent');
+        inactiveTab.classList.remove('active', 'text-white', 'border-[#1fff9c]');
+        inactiveTab.classList.add('text-gray-500', 'border-transparent');
+        
+        // Update content visibility
+        activeContent.classList.remove('hidden');
+        activeContent.classList.add('flex');
+        inactiveContent.classList.add('hidden');
+        inactiveContent.classList.remove('flex');
+    }
+
+    if (withdrawalsTab && transfersTab) {
+        withdrawalsTab.addEventListener('click', () => {
+            switchTab(withdrawalsTab, withdrawalsContent, transfersTab, transfersContent);
+        });
+
+        transfersTab.addEventListener('click', () => {
+            switchTab(transfersTab, transfersContent, withdrawalsTab, withdrawalsContent);
+        });
+    }
+
     // Initialize on page load
     updateAvailableAmount();
     updateWithdrawAvailableAmount();

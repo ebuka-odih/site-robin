@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/dashboard.jsx',
                 'resources/js/trading.jsx',
+                'resources/js/notifications.jsx',
             ],
             refresh: true,
         }),

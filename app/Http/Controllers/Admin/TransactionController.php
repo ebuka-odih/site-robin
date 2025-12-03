@@ -208,16 +208,58 @@ class TransactionController extends Controller
 
     /**
      * Approve a withdrawal (route model binding)
+     * Deducts funds from user's account and changes status to approved
+     * Can approve pending (0) or declined (2) withdrawals, but not already approved (1) ones
      */
     public function approveWithdrawal(Withdrawal $withdrawal)
     {
         try {
-            if ($withdrawal->status != 0) {
-                return redirect()->back()->with('error', 'Withdrawal has already been processed.');
+            // Refresh the withdrawal to get latest data
+            $withdrawal->refresh();
+            
+            // Prevent approving already approved withdrawals (status 1)
+            if ($withdrawal->status == 1) {
+                return redirect()->back()->with('error', 'This withdrawal has already been approved.');
             }
 
+            // Allow approving pending (0) or declined (2) withdrawals
+            // Declined withdrawals can be re-approved since funds were never deducted
+            
+            // Load user relationship and refresh to get latest balance
+            $user = $withdrawal->user;
+            $user->refresh();
+            
+            $fromAccount = $withdrawal->from_account ?? 'balance';
+            $amount = $withdrawal->amount;
+
+            // Check if user has sufficient balance
+            $currentBalance = $user->$fromAccount ?? 0;
+            if ($currentBalance < $amount) {
+                $accountName = ucfirst(str_replace('_', ' ', $fromAccount));
+                return redirect()->back()->with('error', "User does not have sufficient balance in {$accountName}. Current balance: $" . number_format($currentBalance, 2) . ". Required: $" . number_format($amount, 2));
+            }
+
+            // Only deduct funds if withdrawal was not already approved
+            // This prevents double-deduction if somehow the status check fails
+            if ($withdrawal->status != 1) {
+                // Use decrement method for atomic database operation
+                $user->decrement($fromAccount, $amount);
+
+                // Refresh user to get updated balance
+                $user->refresh();
+            }
+
+            // Update withdrawal status to approved
             $withdrawal->status = 1;
             $withdrawal->save();
+
+            \Log::info('Withdrawal approved and funds deducted', [
+                'withdrawal_id' => $withdrawal->id,
+                'user_id' => $user->id,
+                'amount' => $amount,
+                'from_account' => $fromAccount,
+                'new_balance' => $user->$fromAccount
+            ]);
 
             // Create notification directly
             $withdrawal->user->createNotification(
@@ -237,41 +279,57 @@ class TransactionController extends Controller
                 \Log::error('Failed to send withdrawal approval email: ' . $e->getMessage());
             }
 
-            return redirect()->back()->with('success', 'Withdrawal approved successfully.');
+            return redirect()->back()->with('success', 'Withdrawal approved successfully. Funds have been deducted from user account.');
 
         } catch (\Exception $e) {
-            \Log::error('Withdrawal approval failed: ' . $e->getMessage());
+            \Log::error('Withdrawal approval failed: ' . $e->getMessage(), [
+                'withdrawal_id' => $withdrawal->id ?? null,
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->with('error', 'Failed to approve withdrawal. Please try again.');
         }
     }
 
     /**
-     * Decline a withdrawal and refund user's balance
+     * Decline a withdrawal
+     * Only changes status - no refund needed since funds were not deducted on request
+     * Can decline pending (0) withdrawals, but not already approved (1) ones
      */
     public function declineWithdrawal($id)
     {
         try {
             $withdraw = Withdrawal::with('user')->findOrFail($id);
+            $withdraw->refresh();
             
-            if ($withdraw->status != 0) {
-                return redirect()->back()->with('error', 'Withdrawal has already been processed.');
+            // Prevent declining already approved withdrawals (status 1)
+            if ($withdraw->status == 1) {
+                return redirect()->back()->with('error', 'Cannot decline an already approved withdrawal. Please contact support if you need to reverse this transaction.');
             }
 
-        $withdraw->status = 2;
-        $withdraw->save();
+            // Allow declining pending (0) or re-declining declined (2) withdrawals
+            // Only change status - funds were never deducted, so no refund needed
+            $withdraw->status = 2;
+            $withdraw->save();
 
-            // Refund user's balance
-            $user = $withdraw->user;
-        $user->balance += $withdraw->amount;
-        $user->save();
+            // Create notification directly
+            $withdraw->user->createNotification(
+                'withdrawal_declined',
+                'Withdrawal Declined',
+                "Your withdrawal request of " . $withdraw->user->formatAmount($withdraw->amount) . " has been declined.",
+                [
+                    'amount' => $withdraw->amount,
+                    'withdrawal_id' => $withdraw->id,
+                    'status' => 'declined'
+                ]
+            );
 
             try {
-        Mail::to($withdraw->user->email)->send(new RejectWithdrawalMail($withdraw));
+                Mail::to($withdraw->user->email)->send(new RejectWithdrawalMail($withdraw));
             } catch (\Exception $e) {
                 \Log::error('Failed to send withdrawal decline email: ' . $e->getMessage());
             }
 
-            return redirect()->back()->with('success', 'Withdrawal declined and user balance refunded.');
+            return redirect()->back()->with('success', 'Withdrawal declined successfully.');
 
         } catch (\Exception $e) {
             \Log::error('Withdrawal decline failed: ' . $e->getMessage());
@@ -280,23 +338,36 @@ class TransactionController extends Controller
     }
 
     /**
-     * Reject a withdrawal and refund user's balance (route model binding)
+     * Reject a withdrawal (route model binding)
+     * Only changes status - no refund needed since funds were not deducted on request
+     * Can reject pending (0) withdrawals, but not already approved (1) ones
      */
     public function rejectWithdrawal(Withdrawal $withdrawal)
     {
         try {
-            if ($withdrawal->status != 0) {
-                return redirect()->back()->with('error', 'Withdrawal has already been processed.');
+            $withdrawal->refresh();
+            
+            // Prevent rejecting already approved withdrawals (status 1)
+            if ($withdrawal->status == 1) {
+                return redirect()->back()->with('error', 'Cannot reject an already approved withdrawal. Please contact support if you need to reverse this transaction.');
             }
 
+            // Allow rejecting pending (0) or re-rejecting declined (2) withdrawals
+            // Only change status - funds were never deducted, so no refund needed
             $withdrawal->status = 2;
             $withdrawal->save();
 
-            // Refund user's balance based on the account it was withdrawn from
-            $user = $withdrawal->user;
-            $fromAccount = $withdrawal->from_account ?? 'balance';
-            $user->$fromAccount += $withdrawal->amount;
-            $user->save();
+            // Create notification directly
+            $withdrawal->user->createNotification(
+                'withdrawal_declined',
+                'Withdrawal Declined',
+                "Your withdrawal request of " . $withdrawal->user->formatAmount($withdrawal->amount) . " has been declined.",
+                [
+                    'amount' => $withdrawal->amount,
+                    'withdrawal_id' => $withdrawal->id,
+                    'status' => 'declined'
+                ]
+            );
 
             try {
                 Mail::to($withdrawal->user->email)->send(new RejectWithdrawalMail($withdrawal));
@@ -304,7 +375,7 @@ class TransactionController extends Controller
                 \Log::error('Failed to send withdrawal decline email: ' . $e->getMessage());
             }
 
-            return redirect()->back()->with('success', 'Withdrawal declined and user balance refunded.');
+            return redirect()->back()->with('success', 'Withdrawal declined successfully.');
 
         } catch (\Exception $e) {
             \Log::error('Withdrawal decline failed: ' . $e->getMessage());

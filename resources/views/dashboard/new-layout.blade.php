@@ -378,15 +378,72 @@
                         </div>
                         <span class="text-[11px] font-medium text-gray-500 group-hover:text-white">More</span>
                     </button>
-                    <!-- Popup Menu -->
-                    <div id="menu-popup" class="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-[#0c0c0c] border border-[#1a1a1a] rounded-2xl shadow-xl overflow-hidden z-50">
-                        <div class="py-2">
-                            <a href="{{ route('user.support.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    <!-- Popup Menu Card -->
+                    <div id="menu-popup" class="hidden absolute bottom-full right-0 mb-2 w-64 bg-[#0c0c0c] border-2 border-[#1fff9c] rounded-2xl shadow-2xl overflow-hidden z-[100]">
+                        <div class="p-3 space-y-4">
+                            <!-- PORTFOLIO Section -->
+                            <div class="space-y-2">
+                                <h3 class="text-[10px] font-bold uppercase tracking-wider text-[#1fff9c] border-b border-[#1fff9c]/30 pb-1.5">PORTFOLIO</h3>
+                                <div class="space-y-1">
+                                    <a href="{{ route('user.portfolio.holding') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                        <span>Holdings</span>
+                                    </a>
+                                    <a href="{{ route('user.liveTrading.index') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>Positions</span>
+                                    </a>
+                                    <a href="{{ route('user.portfolio.trade') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                        <span>Orders</span>
+                                    </a>
+                                    <a href="{{ route('user.nav.assets') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                        <span>Markets</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- ACTIVITY Section -->
+                            <div class="space-y-2">
+                                <h3 class="text-[10px] font-bold uppercase tracking-wider text-[#1fff9c] border-b border-[#1fff9c]/30 pb-1.5">ACTIVITY</h3>
+                                <div class="space-y-1">
+                                    <a href="{{ route('user.nav.wallet') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Transactions</span>
+                                    </a>
+                                    <a href="{{ route('user.nav.profile') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                        </svg>
+                                        <span>Notifications</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- TOOLS Section -->
+                            <div class="space-y-2">
+                                <h3 class="text-[10px] font-bold uppercase tracking-wider text-[#1fff9c] border-b border-[#1fff9c]/30 pb-1.5">TOOLS</h3>
+                                <div class="space-y-1">
+                                    <a href="{{ route('user.support.index') }}" class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs text-white hover:bg-[#1a1a1a] transition-colors group">
+                                        <svg class="h-4 w-4 text-[#1fff9c] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                                 <span>Support</span>
                             </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import TradingPage from './components/trading/TradingPage';
+import NotificationsPage from './components/notifications/NotificationsPage';
 
-const container = document.getElementById('react-trading-page');
+const container = document.getElementById('react-notifications');
 
 if (container) {
     const props = container.dataset.props
@@ -10,9 +10,8 @@ if (container) {
         : {};
 
     const root = createRoot(container);
-    root.render(<TradingPage {...props} />);
+    root.render(<NotificationsPage {...props} />);
 }
-
 
 
 

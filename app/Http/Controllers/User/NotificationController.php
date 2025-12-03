@@ -17,9 +17,25 @@ class NotificationController extends Controller
     {
         $notifications = UserNotification::where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'data' => $notification->data,
+                    'read_at' => $notification->read_at,
+                    'created_at' => $notification->created_at->toISOString(),
+                ];
+            });
 
-        return view('dashboard.notifications.index', compact('notifications'));
+        $reactProps = [
+            'notifications' => $notifications,
+            'csrfToken' => csrf_token(),
+        ];
+
+        return view('dashboard.notifications.new', compact('reactProps'));
     }
 
     /**

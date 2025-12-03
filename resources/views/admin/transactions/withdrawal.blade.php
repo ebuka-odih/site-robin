@@ -148,6 +148,10 @@
                                         <span>${{ number_format($item->amount, 2) ?? '' }}</span>
                                     </li>
                                     <li class="flex justify-between items-center py-4 px-6">
+                                        <strong class="text-white-700">From Account:</strong>
+                                        <span>{{ ucfirst(str_replace('_', ' ', $item->from_account ?? 'balance')) }}</span>
+                                    </li>
+                                    <li class="flex justify-between items-center py-4 px-6">
                                         <strong class="text-white-700">Payment Method:</strong>
                                         <span>{{ $item->payment_method ?? '' }}</span>
                                     </li>
@@ -185,7 +189,7 @@
                                     </form>
                                     <form method="POST" action="{{ route('admin.transactions.withdrawals.reject', $item->id) }}" class="inline ml-3">
                                         @csrf
-                                        <button type="submit" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" onclick="return confirm('Are you sure you want to reject this withdrawal? This will refund the amount to the user.')">
+                                        <button type="submit" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" onclick="return confirm('Are you sure you want to reject this withdrawal?')">
                                             Decline
                                         </button>
                                     </form>
