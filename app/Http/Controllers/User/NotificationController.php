@@ -25,7 +25,7 @@ class NotificationController extends Controller
                     'title' => $notification->title,
                     'message' => $notification->message,
                     'data' => $notification->data,
-                    'read_at' => $notification->read_at,
+                    'read_at' => $notification->read_at ? $notification->read_at->toISOString() : null,
                     'created_at' => $notification->created_at->toISOString(),
                 ];
             });

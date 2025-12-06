@@ -155,7 +155,6 @@
                         <option value="">Select account</option>
                         <option value="balance" data-balance="{{ $user->balance }}">Main ({{ $user->formatAmount($user->balance) }})</option>
                         <option value="trading_balance" data-balance="{{ $user->trading_balance ?? 0 }}">Trading ({{ $user->formatAmount($user->trading_balance ?? 0) }})</option>
-                        <option value="profit" data-balance="{{ $user->profit ?? 0 }}">Profit ({{ $user->formatAmount($user->profit ?? 0) }})</option>
                     </select>
                 </div>
                 <div class="space-y-2">
@@ -431,33 +430,20 @@ function updateToAccountOptions() {
     // Clear existing options except the first one
     toAccountSelect.innerHTML = '<option value="">Select account</option>';
     
-    if (fromAccount === 'profit') {
-        // When profit is selected, only show trading_balance option
-        const tradingOption = document.createElement('option');
-        tradingOption.value = 'trading_balance';
-        tradingOption.textContent = 'Trading';
-        toAccountSelect.appendChild(tradingOption);
-        
-        // If current selection was balance, reset to empty
-        if (currentToValue === 'balance') {
-            toAccountSelect.value = '';
-        }
-    } else {
-        // For other accounts, show both Main and Trading options
-        const mainOption = document.createElement('option');
-        mainOption.value = 'balance';
-        mainOption.textContent = 'Main';
-        toAccountSelect.appendChild(mainOption);
-        
-        const tradingOption = document.createElement('option');
-        tradingOption.value = 'trading_balance';
-        tradingOption.textContent = 'Trading';
-        toAccountSelect.appendChild(tradingOption);
-        
-        // Restore previous selection if it's still valid
-        if (currentToValue && (currentToValue === 'balance' || currentToValue === 'trading_balance')) {
-            toAccountSelect.value = currentToValue;
-        }
+    // For all accounts, show both Main and Trading options
+    const mainOption = document.createElement('option');
+    mainOption.value = 'balance';
+    mainOption.textContent = 'Main';
+    toAccountSelect.appendChild(mainOption);
+    
+    const tradingOption = document.createElement('option');
+    tradingOption.value = 'trading_balance';
+    tradingOption.textContent = 'Trading';
+    toAccountSelect.appendChild(tradingOption);
+    
+    // Restore previous selection if it's still valid
+    if (currentToValue && (currentToValue === 'balance' || currentToValue === 'trading_balance')) {
+        toAccountSelect.value = currentToValue;
     }
 }
 

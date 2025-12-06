@@ -36,18 +36,10 @@ class WithdrawalController extends Controller
         }
         
         $validator = Validator::make($request->all(), [
-            'from_account' => 'required|string|in:balance,trading_balance,mining_balance,profit',
+            'from_account' => 'required|string|in:balance,trading_balance,mining_balance',
             'to_account' => 'required|string|in:balance,trading_balance,mining_balance|different:from_account',
             'amount' => 'required|numeric|min:0.01',
         ]);
-        
-        // Custom validation: profit can only be transferred to trading_balance
-        if ($request->from_account === 'profit' && $request->to_account !== 'trading_balance') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Profit can only be transferred to trading balance.'
-            ], 422);
-        }
 
         if ($validator->fails()) {
             return response()->json([
