@@ -253,6 +253,42 @@
         * {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
+        
+        /* Tooltip styles */
+        .tooltip-container {
+            position: relative;
+        }
+        .tooltip-container:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 12px;
+            white-space: nowrap;
+            border-radius: 6px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
     </style>
 
 
@@ -481,20 +517,34 @@
                                 <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
                             </svg>
                         </button>
-                        <div class="flex items-center">
+                        <div class="flex items-center relative">
+                            <!-- Modern Christmas Tree Icon with Tooltip -->
+                            <div class="tooltip-container absolute -top-8 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer">
+                                <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Star on top -->
+                                    <path d="M16 2 L17.5 8 L24 8 L19 12 L20.5 18 L16 14 L11.5 18 L13 12 L8 8 L14.5 8 Z" fill="#FFD700" stroke="#FFA500" stroke-width="0.5"/>
+                                    <!-- Top triangle -->
+                                    <path d="M16 10 L12 18 L20 18 Z" fill="#10B981" stroke="#059669" stroke-width="0.5"/>
+                                    <!-- Middle triangle -->
+                                    <path d="M16 15 L10 24 L22 24 Z" fill="#10B981" stroke="#059669" stroke-width="0.5"/>
+                                    <!-- Trunk -->
+                                    <rect x="14" y="24" width="4" height="4" fill="#92400E" rx="1"/>
+                                </svg>
+                                <span class="tooltip">Merry Christmas</span>
+                            </div>
                             @if(\App\Helpers\WebsiteSettingsHelper::hasTextLogo())
                                 <!-- Text Logo -->
-                                <div class="h-16 flex items-center">
+                                <div class="h-16 flex items-center pt-2">
                                     <span class="text-white font-extrabold text-2xl tracking-wide">{{ \App\Helpers\WebsiteSettingsHelper::getTextLogo() }}</span>
                                 </div>
                             @elseif(\App\Helpers\WebsiteSettingsHelper::hasImageLogo())
                                 <!-- Image Logo -->
                                 <img src="{{ \App\Helpers\WebsiteSettingsHelper::getLogoUrl() }}" 
                                      alt="{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }}" 
-                                     class="h-16 w-auto object-contain">
+                                     class="h-16 w-auto object-contain pt-2">
                             @else
                                 <!-- Site Name as Logo (fallback) -->
-                                <div class="h-16 flex items-center">
+                                <div class="h-16 flex items-center pt-2">
                                     <span class="text-white font-extrabold text-2xl tracking-wide">{{ \App\Helpers\WebsiteSettingsHelper::getSiteName() }}</span>
                                 </div>
                             @endif
