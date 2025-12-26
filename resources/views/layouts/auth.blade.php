@@ -108,5 +108,8 @@
     
     {{-- PWA Install Prompt --}}
     <script src="{{ asset('js/pwa-install-prompt.js') }}"></script>
+    
+    {{-- Snow Effect --}}
+    <script src="{{ asset('js/snow-effect.js') }}"></script>
 </body>
 </html>

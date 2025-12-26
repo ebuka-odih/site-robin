@@ -7,6 +7,7 @@ import Watchlist from './Watchlist';
 import RecentActivity from './RecentActivity';
 import TradingViewNewsWidget from './TradingViewNewsWidget';
 import PWAInstallPrompt from './PWAInstallPrompt';
+import SnowEffect from '../SnowEffect';
 import { formatCurrency } from './utils';
 
 const NeoDashboard = ({
@@ -77,9 +78,14 @@ const NeoDashboard = ({
     };
 
     return (
-        <div className="min-h-screen bg-black text-white px-2 sm:px-4 py-3 space-y-3 sm:space-y-4 w-full">
-            {/* Header */}
-            <div>
+        <div className="min-h-screen bg-black text-white px-2 sm:px-4 py-3 space-y-3 sm:space-y-4 w-full relative">
+            {/* Snow Effect - Behind content */}
+            <SnowEffect />
+            
+            {/* Content - Above snow */}
+            <div className="relative" style={{ zIndex: 1 }}>
+                {/* Header */}
+                <div>
                 <p className="text-xs font-semibold text-[#00ff63] uppercase tracking-widest">
                     Smart Trader
                 </p>
@@ -129,6 +135,7 @@ const NeoDashboard = ({
             
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
+            </div>
         </div>
     );
 };
