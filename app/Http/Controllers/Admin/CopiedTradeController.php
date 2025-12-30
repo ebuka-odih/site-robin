@@ -48,14 +48,15 @@ class CopiedTradeController extends Controller
             'pnl' => $request->pnl,
         ]);
         
-        // Add PnL difference to user's trading account balance
+        // Add PnL difference to user's profit field (not balance)
+        // This ensures profit is tracked separately and doesn't go to balance without trace
         if ($pnlDifference != 0) {
             $user = $copiedTrade->user;
-            $user->balance += $pnlDifference;
+            $user->profit = ($user->profit ?? 0) + $pnlDifference;
             $user->save();
             
-            // Log the balance adjustment
-            \Log::info("User {$user->id} balance adjusted by \${$pnlDifference} for copied trade {$copiedTrade->id}. New balance: \${$user->balance}");
+            // Log the profit adjustment
+            \Log::info("User {$user->id} profit adjusted by \${$pnlDifference} for copied trade {$copiedTrade->id}. New profit: \${$user->profit}");
         }
 
         return redirect()->back()->with('success', 'Performance metrics updated successfully! ' . 
@@ -86,11 +87,12 @@ class CopiedTradeController extends Controller
     {
         $copiedTrade = CopiedTrade::findOrFail($id);
         
-        // Transfer PnL to user's trading balance when stopping
+        // Transfer PnL to user's profit field when stopping (not balance)
+        // This ensures profit is tracked separately and doesn't go to balance without trace
         if ($copiedTrade->status == 1 && ($copiedTrade->pnl ?? 0) > 0) {
             $user = $copiedTrade->user;
             $pnlAmount = $copiedTrade->pnl;
-            $user->balance += $pnlAmount;
+            $user->profit = ($user->profit ?? 0) + $pnlAmount;
             $user->save();
             
             // Reset PnL to 0 after transfer
@@ -104,7 +106,7 @@ class CopiedTradeController extends Controller
             $copiedTrade->user->createNotification(
                 'copy_trade_stopped',
                 'Copy Trade Stopped',
-                "Your copy trade with {$copiedTrade->copy_trader->name} has been stopped. PnL of $" . number_format($pnlAmount, 2) . " has been transferred to your balance.",
+                "Your copy trade with {$copiedTrade->copy_trader->name} has been stopped. PnL of $" . number_format($pnlAmount, 2) . " has been added to your profit.",
                 [
                     'copied_trade_id' => $copiedTrade->id,
                     'trader_name' => $copiedTrade->copy_trader->name,
@@ -113,9 +115,9 @@ class CopiedTradeController extends Controller
                 ]
             );
             
-            \Log::info("Copied trade {$id} stopped. PnL of \${$pnlAmount} transferred to user {$user->id} balance. New balance: \${$user->balance}");
+            \Log::info("Copied trade {$id} stopped. PnL of \${$pnlAmount} added to user {$user->id} profit. New profit: \${$user->profit}");
             
-            return redirect()->back()->with('success', "Copied trade stopped successfully! PnL of $" . number_format($pnlAmount, 2) . " transferred to user's trading balance.");
+            return redirect()->back()->with('success', "Copied trade stopped successfully! PnL of $" . number_format($pnlAmount, 2) . " added to user's profit.");
         } else {
             $copiedTrade->update([
                 'status' => 0,

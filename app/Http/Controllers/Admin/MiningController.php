@@ -59,13 +59,14 @@ class MiningController extends Controller
         // Calculate PnL difference
         $pnlDifference = $request->current_value - $oldValue;
         
-        // If there's a positive PnL difference, add it to user's balance
+        // If there's a positive PnL difference, add it to user's profit field (not balance)
+        // This ensures profit is tracked separately and doesn't go to balance without trace
         if ($pnlDifference > 0) {
             $user = $mining->user;
-            $user->balance += $pnlDifference;
+            $user->profit = ($user->profit ?? 0) + $pnlDifference;
             $user->save();
             
-            \Log::info("Mining PnL updated for user {$user->id}. PnL difference: \${$pnlDifference}. New balance: \${$user->balance}");
+            \Log::info("Mining PnL updated for user {$user->id}. PnL difference: \${$pnlDifference}. New profit: \${$user->profit}");
         }
 
         return redirect()->route('admin.mining.index')
@@ -126,13 +127,22 @@ class MiningController extends Controller
     {
         $mining = UserMining::findOrFail($id);
         
-        // If mining was active and has current value, transfer to user balance
+        // If mining was active and has current value, separate investment return from profit
         if ($mining->status === 'active' && $mining->current_value > 0) {
             $user = $mining->user;
-            $user->balance += $mining->current_value;
+            
+            // Return original investment to balance
+            $user->balance += $mining->amount_invested;
+            
+            // Add profit (if any) to profit field, not balance
+            $profit = $mining->current_value - $mining->amount_invested;
+            if ($profit > 0) {
+                $user->profit = ($user->profit ?? 0) + $profit;
+            }
+            
             $user->save();
             
-            \Log::info("Mining cancelled for user {$user->id}. Value of \${$mining->current_value} transferred to balance. New balance: \${$user->balance}");
+            \Log::info("Mining cancelled for user {$user->id}. Investment of \${$mining->amount_invested} returned to balance, profit of \${$profit} added to profit field. New balance: \${$user->balance}, New profit: \${$user->profit}");
         }
 
         $mining->update([

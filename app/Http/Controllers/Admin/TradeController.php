@@ -116,7 +116,9 @@ class TradeController extends Controller
         
         // Update user balance and profit
         $user = User::find($trade->user_id);
-        $user->balance += $trade->amount + $profitLoss;
+        // Return only the original trade amount to balance
+        $user->balance += $trade->amount;
+        // Add profit/loss only to profit field (not to balance)
         $user->profit = ($user->profit ?? 0) + $profitLoss;
         $user->save();
         
